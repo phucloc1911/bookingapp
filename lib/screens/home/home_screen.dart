@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bookingapp/screens/auth/login_screen.dart';
 import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
+import 'package:bookingapp/screens/auth/account_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -131,36 +132,55 @@ class HomeScreen extends StatelessWidget {
         currentIndex: 0,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
+        onTap: (int index) {
+          switch (index) {
+            case 0: // Nút Home
+              // Thường không làm gì vì đang ở Home rồi
+              print("Đang ở màn hình Home");
+              break;
+
+            case 1: // Nút Favorites (Yêu thích)
+              // Chuyển sang trang Favorites
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FavoriterScreen()),
+              );
+              break;
+
+            case 2: // Nút My Booking (Lịch sử đặt phòng)
+              print("Đã bấm vào My Booking");
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => const MyBookingScreen()),
+              // );
+              break;
+
+            case 3: // Nút Account (Tài khoản)
+              // 1. Kiểm tra xem Firebase đã ghi nhận có người đăng nhập chưa
+              final user = FirebaseAuth.instance.currentUser;
+
+              if (user != null) {
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AccountScreen()),
+                );
+              } else {
+                // CHƯA ĐĂNG NHẬP: Bắt về trang Login
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
+              }
+              break;
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: "Favorites"),
           BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: "My Booking"),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: "Account"),
         ],
-        onTap: (int index) {
-          switch (index) {
-            case 0:
-              print("Đang Home");
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FavoriterScreen()),
-              );
-              break;
-            case 2:
-              print("Đang My Booking");
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-              break;
-            default:
-              break;
-          }
-        },
       ),
     ); 
   }

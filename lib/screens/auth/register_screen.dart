@@ -110,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Tạo tài khoản mới ✨", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const Text("Tạo tài khoản mới", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               const Text("Trải nghiệm đặt phòng nhanh chóng & nhiều ưu đãi", style: TextStyle(fontSize: 15, color: Colors.grey)),
               const SizedBox(height: 35),

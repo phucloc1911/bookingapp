@@ -12,7 +12,20 @@
           "package_name": "com.example.bookingapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "975538261911-r8vgjtqgg3aftned4d647n2dnufnto5s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bookingapp",
+            "certificate_hash": "7754a880acfac3d95234edfdd0ecf13f0fc399ff"
+          }
+        },
+        {
+          "client_id": "975538261911-og3pl0lf91k7t8h6hrav4p77qvnfahhl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBkgv4GLbxLUgLJbzhhuTpbSzlqkRdwNDA"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "975538261911-og3pl0lf91k7t8h6hrav4p77qvnfahhl.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "975538261911-id2muughlv1lssm6c2iif5miqo477pg8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bookingapp"
+              }
+            }
+          ]
         }
       }
     }

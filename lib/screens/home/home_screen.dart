@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:bookingapp/screens/auth/login_screen.dart';
-
+import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -131,18 +131,6 @@ class HomeScreen extends StatelessWidget {
         currentIndex: 0,
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-        onTap: (int index) {
-          // Xử lý sự kiện khi bấm vào các tab
-          if (index == 3) { // Index 3 là vị trí của tab "Account"
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
-          } else {
-            // Bạn có thể xử lý cho các tab khác (Favorites, My Booking) ở đây sau
-            print("Đã bấm vào tab số $index");
-          }
-        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: "Favorites"),

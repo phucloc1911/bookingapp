@@ -18,7 +18,19 @@ class User {
       phoneNumber: json['phoneNumber'] ?? '',
     );
   }
-
+  set id(String value) {
+    _id = value;
+  }
+  set name(String value){
+    _name = value;
+  }
+  set email(String value) {
+    _email = value;
+  }
+  set phoneNumber(String value) {
+    _phoneNumber = value;
+  }
+  
   // Getters
   String get id => _id;
   String get name => _name;

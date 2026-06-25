@@ -4,8 +4,13 @@ class User {
   String _email;
   String _phoneNumber;
 
-  User({required String id, required String name, required String email, required String phoneNumber})
-      : _id = id,
+  // Sử dụng 'this.' trong constructor giúp code gọn hơn rất nhiều
+  User({
+    required String id,
+    required String name,
+    required String email,
+    required String phoneNumber,
+  })  : _id = id,
         _name = name,
         _email = email,
         _phoneNumber = phoneNumber;
@@ -18,33 +23,26 @@ class User {
       phoneNumber: json['phoneNumber'] ?? '',
     );
   }
-  set id(String value) {
-    _id = value;
-  }
-  set name(String value){
-    _name = value;
-  }
-  set email(String value) {
-    _email = value;
-  }
-  set phoneNumber(String value) {
-    _phoneNumber = value;
-  }
-  
+
   // Getters
   String get id => _id;
   String get name => _name;
   String get email => _email;
   String get phoneNumber => _phoneNumber;
 
+  // Setters (Chỉ giữ lại nếu bạn cần kiểm tra logic khi gán giá trị)
+  set id(String value) => _id = value;
+  set name(String value) => _name = value;
+  set email(String value) => _email = value;
+  set phoneNumber(String value) => _phoneNumber = value;
 
-  // Hàm từ điển: Chuyển đối tượng User trong App thành JSON để đẩy lên Firebase/API
+  // Hàm chuyển đối tượng thành JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'phoneNumber': phoneNumber,
+      'id': _id,
+      'name': _name,
+      'email': _email,
+      'phoneNumber': _phoneNumber,
     };
   }
 }

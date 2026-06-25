@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bookingapp/screens/auth/login_screen.dart';
 import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
 import 'package:bookingapp/screens/auth/account_screen.dart';
+import 'package:bookingapp/services/gg_map.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -83,12 +84,15 @@ class HomeScreen extends StatelessWidget {
                 crossAxisCount: 4, 
                 mainAxisSpacing: 16, 
                 crossAxisSpacing: 16, 
+                childAspectRatio: 0.8,
                 children: [
                   _buildCategoryIcon(Icons.hotel, 'Khách sạn', Colors.blue),
                   _buildCategoryIcon(Icons.house_siding, 'Homestay', Colors.green),
                   _buildCategoryIcon(Icons.holiday_village, 'Resort', Colors.orange),
                   _buildCategoryIcon(Icons.local_offer, 'Khuyến mãi', Colors.redAccent),
-                  _buildCategoryIcon(Icons.map, 'Bản đồ', Colors.indigo),
+                  _buildCategoryIcon(Icons.map, 'Bản đồ', Colors.indigo, onTap:(){
+                    openGoogleMap();
+                  }),
                   _buildCategoryIcon(Icons.more_horiz, 'Xem thêm', Colors.grey),
                 ],
               ),
@@ -200,31 +204,47 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryIcon(IconData icon, String title, Color color) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          height: 50,
-          width: 50,
-          decoration: BoxDecoration(
-            color: Colors.white, 
-            borderRadius: BorderRadius.circular(12.0), 
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))]
+// Thêm {VoidCallback? onTap} vào trong ngoặc để hàm có thể nhận sự kiện bấm
+  Widget _buildCategoryIcon(IconData icon, String title, Color color, {VoidCallback? onTap}) {
+    // Bọc toàn bộ ô icon bằng GestureDetector (hoặc InkWell) để bắt sự kiện chạm
+    return GestureDetector(
+      onTap: onTap, // Gắn lệnh onTap truyền từ ngoài vào đây
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Khối chứa Icon
+          Container(
+            height: 60, // Kích thước khung icon (bạn có thể chỉnh lại cho khớp với code cũ)
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.0),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 30),
           ),
-          child: Icon(icon, color: color, size: 28), 
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-          textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis, 
-        ),
-      ],
+          const SizedBox(height: 8),
+          
+          // Chữ bên dưới Icon
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
-
   Widget _buildRoomCard(String title, String location, String price, Color imgColor) {
     return Container(
       width: 160,

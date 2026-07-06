@@ -1,0 +1,274 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shimmer/shimmer.dart'; // Import thư viện shimmer
+
+class SearchScreen extends StatelessWidget {
+  final String categoryType; 
+
+  const SearchScreen({super.key, required this.categoryType});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100], 
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        elevation: 0,
+        title: Text(
+          'Danh sách $categoryType',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white), 
+      ),
+      
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('rooms')
+            .where('type', isEqualTo: categoryType)
+            .snapshots(),
+        builder: (context, snapshot) {
+          
+          // 1. TRẠNG THÁI ĐANG TẢI: Hiển thị Skeleton Loading thay vì vòng xoay
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: 3, // Số lượng khung xương hiển thị mẫu
+              itemBuilder: (context, index) {
+                return const RoomSkeleton();
+              },
+            );
+          }
+
+          // 2. Nếu có lỗi xảy ra
+          if (snapshot.hasError) {
+            return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
+          }
+
+          // 3. Nếu Không có dữ liệu
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off_rounded, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Hiện chưa có $categoryType nào.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 4. TRẠNG THÁI CÓ DỮ LIỆU: Đổ ra danh sách thẻ phòng thật
+          final rooms = snapshot.data!.docs;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: rooms.length,
+            itemBuilder: (context, index) {
+              final roomData = rooms[index].data() as Map<String, dynamic>;
+              final roomId = rooms[index].id; 
+
+              final String name = roomData['name'] ?? 'Chưa cập nhật tên';
+              final String location = roomData['location'] ?? 'Chưa cập nhật địa chỉ';
+              final int price = roomData['price'] ?? 0;
+              final String imageUrl = roomData['imageUrl'] ?? ''; 
+
+              return _buildRoomCard(context, name, location, price, imageUrl, roomId);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // --- WIDGET XÂY DỰNG GIAO DIỆN TỪNG THẺ PHÒNG THẬT ---
+  Widget _buildRoomCard(BuildContext context, String name, String location, int price, String imageUrl, String roomId) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          // Khối 1: Ảnh đại diện
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16.0)),
+            child: imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+                  )
+                : _buildImagePlaceholder(),
+          ),
+          
+          // Khối 2: Thông tin chữ
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        location,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Giá mỗi đêm từ', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}đ',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                        ),
+                      ],
+                    ),
+                    
+                    ElevatedButton(
+                      onPressed: () {
+                        // TODO: Code tiếp chuyển sang trang Chi Tiết Phòng ở đây
+                        print("Khách muốn xem chi tiết phòng có ID: $roomId");
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        elevation: 0,
+                      ),
+                      child: const Text('Xem phòng', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      color: Colors.blue[50],
+      child: Icon(Icons.apartment_rounded, size: 60, color: Colors.blue[200]),
+    );
+  }
+}
+
+// ==============================================================
+// WIDGET KHUNG XƯƠNG (SKELETON) ĐƯỢC TÁCH RA ĐỂ TÁI SỬ DỤNG
+// ==============================================================
+class RoomSkeleton extends StatelessWidget {
+  const RoomSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!, 
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Khối 1: Giả lập Hình ảnh
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+              ),
+            ),
+            
+            // Khối 2: Giả lập Thông tin chữ
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 18, width: double.infinity, color: Colors.white),
+                  const SizedBox(height: 8),
+                  Container(height: 18, width: 200, color: Colors.white),
+                  const SizedBox(height: 16),
+                  
+                  Container(height: 14, width: 150, color: Colors.white),
+                  const SizedBox(height: 24),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(height: 12, width: 80, color: Colors.white),
+                          const SizedBox(height: 8),
+                          Container(height: 20, width: 120, color: Colors.white),
+                        ],
+                      ),
+                      Container(
+                        height: 40,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}

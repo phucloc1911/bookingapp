@@ -113,6 +113,7 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
             child: Row(
+              
               children: [
                 _buildFilterChip('Loại hình', _selectedType, () {
                   _showBottomSheetMenu('Chọn loại hình', ['Tất cả', 'Khách sạn', 'Homestay', 'Resort', 'Biệt thự'], _selectedType, (value) {

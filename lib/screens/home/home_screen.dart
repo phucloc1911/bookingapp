@@ -1,9 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+// Các import của bạn
 import 'package:bookingapp/screens/auth/login_screen.dart';
 import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
 import 'package:bookingapp/screens/auth/account_screen.dart';
 import 'package:bookingapp/services/gg_map.dart';
+// IMPORT TRANG TÌM KIẾM (Để nhận lệnh chuyển trang từ danh mục)
+import 'package:bookingapp/screens/search/search_screen.dart'; 
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -76,6 +81,8 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            
+            // --- DANH MỤC CATEGORY ĐÃ CẬP NHẬT ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: GridView.count(
@@ -86,17 +93,38 @@ class HomeScreen extends StatelessWidget {
                 crossAxisSpacing: 16, 
                 childAspectRatio: 0.8,
                 children: [
-                  _buildCategoryIcon(Icons.hotel, 'Khách sạn', Colors.blue),
-                  _buildCategoryIcon(Icons.house_siding, 'Homestay', Colors.green),
-                  _buildCategoryIcon(Icons.holiday_village, 'Resort', Colors.orange),
-                  _buildCategoryIcon(Icons.local_offer, 'Khuyến mãi', Colors.redAccent),
-                  _buildCategoryIcon(Icons.map, 'Bản đồ', Colors.indigo, onTap:(){
+                  _buildCategoryIcon(Icons.hotel, 'Khách sạn', Colors.blue, onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SearchScreen(categoryType: 'Khách sạn')),
+                    );
+                  }),
+                  _buildCategoryIcon(Icons.house_siding, 'Homestay', Colors.green, onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SearchScreen(categoryType: 'Homestay')),
+                    );
+                  }),
+                  _buildCategoryIcon(Icons.holiday_village, 'Resort', Colors.orange, onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SearchScreen(categoryType: 'Resort')),
+                    );
+                  }),
+                  _buildCategoryIcon(Icons.local_offer, 'Khuyến mãi', Colors.redAccent, onTap: () {
+                    print("Đã bấm Khuyến mãi");
+                  }),
+                  _buildCategoryIcon(Icons.map, 'Bản đồ', Colors.indigo, onTap: () {
                     openGoogleMap();
                   }),
-                  _buildCategoryIcon(Icons.more_horiz, 'Xem thêm', Colors.grey),
+                  _buildCategoryIcon(Icons.more_horiz, 'Xem thêm', Colors.grey, onTap: () {
+                    print("Đã bấm Xem thêm");
+                  }),
                 ],
               ),
             ),
+            // -------------------------------------
+
             const SizedBox(height: 30),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -123,14 +151,6 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () { 
-          print("Nút Add được bấm!"); 
-        },
-        backgroundColor: Colors.blueAccent, // Cùng màu với theme app
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: 0,
@@ -138,39 +158,26 @@ class HomeScreen extends StatelessWidget {
         unselectedItemColor: Colors.grey,
         onTap: (int index) {
           switch (index) {
-            case 0: // Nút Home
-              // Thường không làm gì vì đang ở Home rồi
+            case 0: 
               print("Đang ở màn hình Home");
               break;
-
-            case 1: // Nút Favorites (Yêu thích)
-              // Chuyển sang trang Favorites
+            case 1: 
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FavoriterScreen()),
               );
               break;
-
-            case 2: // Nút My Booking (Lịch sử đặt phòng)
+            case 2: 
               print("Đã bấm vào My Booking");
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => const MyBookingScreen()),
-              // );
               break;
-
-            case 3: // Nút Account (Tài khoản)
-              // 1. Kiểm tra xem Firebase đã ghi nhận có người đăng nhập chưa
+            case 3: 
               final user = FirebaseAuth.instance.currentUser;
-
               if (user != null) {
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AccountScreen()),
                 );
               } else {
-                // CHƯA ĐĂNG NHẬP: Bắt về trang Login
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -204,47 +211,48 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-// Thêm {VoidCallback? onTap} vào trong ngoặc để hàm có thể nhận sự kiện bấm
+  // --- HÀM BUILD ICON CATEGORY VỚI HIỆU ỨNG CHẠM (INKWELL) ---
   Widget _buildCategoryIcon(IconData icon, String title, Color color, {VoidCallback? onTap}) {
-    // Bọc toàn bộ ô icon bằng GestureDetector (hoặc InkWell) để bắt sự kiện chạm
-    return GestureDetector(
-      onTap: onTap, // Gắn lệnh onTap truyền từ ngoài vào đây
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Khối chứa Icon
-          Container(
-            height: 60, // Kích thước khung icon (bạn có thể chỉnh lại cho khớp với code cũ)
-            width: 60,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16.0),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap, 
+            borderRadius: BorderRadius.circular(16.0), 
+            child: Container(
+              height: 60, 
+              width: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: color, size: 30),
             ),
-            child: Icon(icon, color: color, size: 30),
           ),
-          const SizedBox(height: 8),
-          
-          // Chữ bên dưới Icon
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
-        ],
-      ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
+
   Widget _buildRoomCard(String title, String location, String price, Color imgColor) {
     return Container(
       width: 160,

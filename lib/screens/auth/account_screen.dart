@@ -8,6 +8,7 @@ import '../profile/edit_profile_screen.dart';
 import '../profile/about_screen.dart';
 import '../profile/help_center_screen.dart';
 import '../profile/security_screen.dart';
+import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
@@ -229,7 +230,11 @@ class _AccountScreenState extends State<AccountScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
                     }),
                     _buildTile(Icons.bookmark_border_rounded, "Lịch sử đặt phòng", () {}),
-                    _buildTile(Icons.favorite_border_rounded, "Khách sạn yêu thích", () {}),
+                    _buildTile(Icons.favorite_border_rounded, "Khách sạn yêu thích", () {
+                      Navigator.push(context,
+                      MaterialPageRoute(builder:(context) => const FavoriterScreen()),
+                    );
+                    }),
                   ]),
 
                   const SizedBox(height: 20),

@@ -8,6 +8,8 @@ import '../profile/edit_profile_screen.dart';
 import '../profile/about_screen.dart';
 import '../profile/help_center_screen.dart';
 import '../profile/security_screen.dart';
+import 'package:bookingapp/screens/profile/payment_method_screen.dart'; // Sửa lại đường dẫn nếu cần
+
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
@@ -25,7 +27,10 @@ class _AccountScreenState extends State<AccountScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Đăng xuất", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Đăng xuất",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: const Text("Bạn có chắc chắn muốn đăng xuất khỏi Reservo?"),
         actions: [
           TextButton(
@@ -35,10 +40,15 @@ class _AccountScreenState extends State<AccountScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Đăng xuất", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Đăng xuất",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -49,7 +59,7 @@ class _AccountScreenState extends State<AccountScreen> {
     try {
       await GoogleSignIn.instance.signOut();
       await FirebaseAuth.instance.signOut();
-      
+
       if (!mounted) return;
       // Trở về trang Đăng nhập và xóa sạch lịch sử trang
       Navigator.of(context).pushAndRemoveUntil(
@@ -57,14 +67,16 @@ class _AccountScreenState extends State<AccountScreen> {
         (route) => false,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Lỗi đăng xuất: $e")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Lỗi đăng xuất: $e")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // Màu xanh chuẩn theo file image_bfe115.jpg
-    const Color primaryBlue = Color(0xFF0066FF); 
+    const Color primaryBlue = Color(0xFF0066FF);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), // Màu nền xám xanh siêu nhạt
@@ -87,19 +99,30 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 10.0,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
                             "Tài khoản",
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
+                            icon: const Icon(
+                              Icons.notifications_none_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                             onPressed: () {},
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -110,15 +133,22 @@ class _AccountScreenState extends State<AccountScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 110, left: 20, right: 20),
                   child: FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance.collection('users').doc(currentUser?.uid).get(),
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(currentUser?.uid)
+                        .get(),
                     builder: (context, snapshot) {
                       String name = "Đang tải...";
                       String email = currentUser?.email ?? "Không có email";
                       String phone = "Chưa cập nhật";
 
                       if (snapshot.hasData && snapshot.data!.exists) {
-                        final data = snapshot.data!.data() as Map<String, dynamic>;
-                        name = data['name'] ?? currentUser?.displayName ?? "Người dùng Reservo";
+                        final data =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        name =
+                            data['name'] ??
+                            currentUser?.displayName ??
+                            "Người dùng Reservo";
                         phone = data['phoneNumber'] ?? "Chưa cập nhật";
                       } else if (currentUser != null) {
                         name = currentUser!.displayName ?? "Người dùng Google";
@@ -134,7 +164,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               color: Colors.black.withOpacity(0.08),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
-                            )
+                            ),
                           ],
                         ),
                         child: Column(
@@ -145,45 +175,66 @@ class _AccountScreenState extends State<AccountScreen> {
                                 CircleAvatar(
                                   radius: 36,
                                   backgroundColor: primaryBlue.withOpacity(0.1),
-                                  backgroundImage: currentUser?.photoURL != null 
-                                      ? NetworkImage(currentUser!.photoURL!) 
+                                  backgroundImage: currentUser?.photoURL != null
+                                      ? NetworkImage(currentUser!.photoURL!)
                                       : null,
                                   child: currentUser?.photoURL == null
-                                      ? const Icon(Icons.person, size: 36, color: primaryBlue)
+                                      ? const Icon(
+                                          Icons.person,
+                                          size: 36,
+                                          color: primaryBlue,
+                                        )
                                       : null,
                                 ),
                                 const SizedBox(width: 16),
-                                
+
                                 // Thông tin
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         name,
-                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         email,
-                                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 4),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.amber.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Text(
                                           "🌟 Thành viên Standard",
-                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange,
+                                          ),
                                         ),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -197,12 +248,20 @@ class _AccountScreenState extends State<AccountScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 _buildQuickStat("0", "Khách sạn"),
-                                Container(height: 30, width: 1, color: Colors.grey.shade200),
+                                Container(
+                                  height: 30,
+                                  width: 1,
+                                  color: Colors.grey.shade200,
+                                ),
                                 _buildQuickStat("0", "Voucher"),
-                                Container(height: 30, width: 1, color: Colors.grey.shade200),
+                                Container(
+                                  height: 30,
+                                  width: 1,
+                                  color: Colors.grey.shade200,
+                                ),
                                 _buildQuickStat("0", "Đánh giá"),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       );
@@ -222,35 +281,101 @@ class _AccountScreenState extends State<AccountScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 10),
-                    child: Text("HỒ SƠ CỦA TÔI", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    child: Text(
+                      "HỒ SƠ CỦA TÔI",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ),
                   _buildOptionGroup([
-                    _buildTile(Icons.person_outline_rounded, "Chỉnh sửa thông tin", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
-                    }),
-                    _buildTile(Icons.bookmark_border_rounded, "Lịch sử đặt phòng", () {}),
-                    _buildTile(Icons.favorite_border_rounded, "Khách sạn yêu thích", () {}),
+                    _buildTile(
+                      Icons.person_outline_rounded,
+                      "Chỉnh sửa thông tin",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfileScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildTile(
+                      Icons.bookmark_border_rounded,
+                      "Lịch sử đặt phòng",
+                      () {},
+                    ),
+                    _buildTile(
+                      Icons.favorite_border_rounded,
+                      "Khách sạn yêu thích",
+                      () {},
+                    ),
                   ]),
 
                   const SizedBox(height: 20),
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 10),
-                    child: Text("CÀI ĐẶT & HỖ TRỢ", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    child: Text(
+                      "CÀI ĐẶT & HỖ TRỢ",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ),
                   _buildOptionGroup([
-                    _buildTile(Icons.credit_card_rounded, "Phương thức thanh toán", () {}),
+                    _buildTile(
+                      Icons.credit_card_rounded,
+                      "Phương thức thanh toán",
+                      () {
+                        // NỐI DÂY GỌI TRANG THANH TOÁN TẠI ĐÂY
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PaymentMethodScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     _buildTile(Icons.security_rounded, "Bảo mật tài khoản", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SecurityScreen(),
+                        ),
+                      );
                     }),
-                    _buildTile(Icons.help_outline_rounded, "Trung tâm trợ giúp", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterScreen()));
-                    }),
-                    _buildTile(Icons.info_outline_rounded, "Về Reservo App", () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
-                    }),
+                    _buildTile(
+                      Icons.help_outline_rounded,
+                      "Trung tâm trợ giúp",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HelpCenterScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildTile(
+                      Icons.info_outline_rounded,
+                      "Về Reservo App",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AboutScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ]),
                   const SizedBox(height: 30),
-                  
+
                   // NÚT ĐĂNG XUẤT ĐỎ NỔI BẬT
                   SizedBox(
                     width: double.infinity,
@@ -262,11 +387,20 @@ class _AccountScreenState extends State<AccountScreen> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.red.shade200, width: 1.5),
-                        )
+                          side: BorderSide(
+                            color: Colors.red.shade200,
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                       icon: const Icon(Icons.logout_rounded, size: 22),
-                      label: const Text("Đăng xuất khỏi tài khoản", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: const Text(
+                        "Đăng xuất khỏi tài khoản",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       onPressed: _signOut,
                     ),
                   ),
@@ -274,7 +408,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   const SizedBox(height: 40),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -285,7 +419,14 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget _buildQuickStat(String value, String label) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0066FF))),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0066FF),
+          ),
+        ),
         const SizedBox(height: 2),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
@@ -299,12 +440,14 @@ class _AccountScreenState extends State<AccountScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
-        ]
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -320,8 +463,19 @@ class _AccountScreenState extends State<AccountScreen> {
         ),
         child: Icon(icon, color: const Color(0xFF0066FF), size: 22),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 14,
+        color: Colors.grey,
+      ),
       onTap: onTap,
     );
   }

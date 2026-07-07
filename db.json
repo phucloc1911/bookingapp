@@ -90,16 +90,8 @@
       "rooms": []
     }
   ],
- ,
-    {
-      "id": "resort_02",
-      "name": "Furama Resort Đà Nẵng",
-      "address": "105 Võ Nguyên Giáp, Khuê Mỹ, Ngũ Hành Sơn, Đà Nẵng",
-      "description": "Khu nghỉ dưỡng ẩm thực nổi tiếng, mang đậm nét kiến trúc Chăm truyền thống.",
-      "starRating": 4.8,
-      "rooms": []
-    }
-  ],
+ 
+
   "homestays": [
     {
       "id": "homestay_01",

@@ -90,44 +90,4 @@
       "rooms": []
     }
   ],
- 
-
-  "homestays": [
-    {
-      "id": "homestay_01",
-      "name": "Lạt Nhà Homestay",
-      "hostName": "Anh Tuấn",
-      "address": "Hẻm 31 Sào Nam, Phường 11, Đà Lạt, Lâm Đồng",
-      "description": "Căn nhà gỗ nhỏ xinh giữa thung lũng, view ngắm nhà lồng lên đèn cực chill."
-    },
-    {
-      "id": "homestay_02",
-      "name": "An Nhiên Homestay Hội An",
-      "hostName": "Chị Thảo",
-      "address": "Tổ 4, Thôn Thanh Đông, Cẩm Thanh, Hội An, Quảng Nam",
-      "description": "Trải nghiệm cuộc sống thanh bình, gần gũi với thiên nhiên sông nước miền Tây sông Thu Bồn."
-    }
-  ],
-  "bookings": [
-    {
-      "id": "booking_01",
-      "userId": "user_01",
-      "itemId": "hotel_01",
-      "itemType": "Hotel",
-      "checkIn": "2026-08-15T14:00:00Z",
-      "checkOut": "2026-08-18T12:00:00Z",
-      "totalPrice": 3300000.0,
-      "status": "Confirmed"
-    },
-    {
-      "id": "booking_02",
-      "userId": "user_02",
-      "itemId": "homestay_01",
-      "itemType": "Homestay",
-      "checkIn": "2026-09-02T14:00:00Z",
-      "checkOut": "2026-09-04T12:00:00Z",
-      "totalPrice": 1200000.0,
-      "status": "Pending"
-    }
-  ]
 }

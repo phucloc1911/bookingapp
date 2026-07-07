@@ -104,7 +104,7 @@
           "type": "Villa",
           "rating": 5.0,
           "price": 5500000.0,
-"imageUrl": "https://example.com/images/rooms/villa_2b.jpg",
+          "imageUrl": "https://example.com/images/rooms/villa_2b.jpg",
           "amenities": [
             "Private Pool",
             "Kitchen",
@@ -123,7 +123,21 @@
       "starRating": 4.8,
       "rooms": []
     }
+  ],
+  "homestays": [
+    {
+      "id": "homestay_01",
+      "name": "Lạt Nhà Homestay",
+      "hostName": "Anh Tuấn",
+      "address": "Hẻm 31 Sào Nam, Phường 11, Đà Lạt, Lâm Đồng",
+      "description": "Căn nhà gỗ nhỏ xinh giữa thung lũng, view ngắm nhà lồng lên đèn cực chill."
+    },
+    {
+      "id": "homestay_02",
+      "name": "An Nhiên Homestay Hội An",
+      "hostName": "Chị Thảo",
+      "address": "Tổ 4, Thôn Thanh Đông, Cẩm Thanh, Hội An, Quảng Nam",
+      "description": "Trải nghiệm cuộc sống thanh bình, gần gũi với thiên nhiên sông nước miền Tây sông Thu Bồn."
+    }
   ]
-  
- 
 }

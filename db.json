@@ -1,1 +1,165 @@
-
+{
+  "users": [
+    {
+      "id": "user_01",
+      "name": "Nguyễn Văn A",
+      "email": "nguyenvana@gmail.com",
+      "phoneNumber": "0901234567"
+    },
+    {
+      "id": "user_02",
+      "name": "Trần Thị B",
+      "email": "tranthib@gmail.com",
+      "phoneNumber": "0912345678"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "room_01",
+      "title": "Deluxe Ocean View",
+      "type": "Double",
+      "rating": 4.8,
+      "price": 1200000.0,
+      "imageUrl": "https://example.com/images/rooms/deluxe_ocean.jpg",
+      "amenities": [
+        "Wifi",
+        "Air Conditioner",
+        "Mini Bar",
+        "Balcony"
+      ],
+      "isFavorite": true
+    },
+    {
+      "id": "room_02",
+      "title": "Standard Garden View",
+      "type": "Single",
+      "rating": 4.3,
+      "price": 650000.0,
+      "imageUrl": "https://example.com/images/rooms/standard_garden.jpg",
+      "amenities": [
+        "Wifi",
+        "Fan",
+        "Television"
+      ],
+      "isFavorite": false
+    }
+  ],
+  "hotels": [
+    {
+      "id": "hotel_01",
+      "name": "Khách Sạn Mường Thanh Luxury",
+      "address": "60 Trần Phú, Lộc Thọ, Nha Trang, Khánh Hòa",
+      "description": "Khách sạn 5 sao sang trọng hướng biển, đầy đủ tiện nghi đẳng cấp.",
+      "rooms": [
+        {
+          "id": "room_hotel_01_01",
+          "title": "Executive Suite",
+          "type": "Suite",
+          "rating": 4.9,
+          "price": 2500000.0,
+          "imageUrl": "https://example.com/images/rooms/executive.jpg",
+          "amenities": [
+            "Wifi",
+            "Air Conditioner",
+            "Bathtub",
+            "Ocean View"
+          ],
+          "isFavorite": true
+        },
+        {
+          "id": "room_hotel_01_02",
+          "title": "Superior Twin",
+          "type": "Twin",
+          "rating": 4.5,
+          "price": 1100000.0,
+          "imageUrl": "https://example.com/images/rooms/superior.jpg",
+          "amenities": [
+            "Wifi",
+            "Air Conditioner",
+            "Mini Bar"
+          ],
+          "isFavorite": false
+        }
+      ]
+    },
+    {
+      "id": "hotel_02",
+      "name": "Khách Sạn Rex Sài Gòn",
+      "address": "141 Nguyễn Huệ, Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+      "description": "Khách sạn mang phong cách cổ điển, tọa lạc ngay trung tâm phố đi bộ.",
+      "rooms": []
+    }
+  ],
+  "resorts": [
+    {
+      "id": "resort_01",
+      "name": "Vinpearl Resort & Spa Phú Quốc",
+      "address": "Bãi Dài, Gành Dầu, Phú Quốc, Kiên Giang",
+      "description": "Khu nghỉ dưỡng lý tưởng với bãi biển riêng và hồ bơi vô cực siêu rộng.",
+      "starRating": 5.0,
+      "rooms": [
+        {
+          "id": "room_resort_01_01",
+          "title": "Villa 2-Bedroom Private Pool",
+          "type": "Villa",
+          "rating": 5.0,
+          "price": 5500000.0,
+          "imageUrl": "https://example.com/images/rooms/villa_2b.jpg",
+          "amenities": [
+            "Private Pool",
+            "Kitchen",
+            "Wifi",
+            "Beachfront"
+          ],
+          "isFavorite": true
+        }
+      ]
+    },
+    {
+      "id": "resort_02",
+      "name": "Furama Resort Đà Nẵng",
+      "address": "105 Võ Nguyên Giáp, Khuê Mỹ, Ngũ Hành Sơn, Đà Nẵng",
+      "description": "Khu nghỉ dưỡng ẩm thực nổi tiếng, mang đậm nét kiến trúc Chăm truyền thống.",
+      "starRating": 4.8,
+      "rooms": []
+    }
+  ],
+  "homestays": [
+    {
+      "id": "homestay_01",
+      "name": "Lạt Nhà Homestay",
+      "hostName": "Anh Tuấn",
+      "address": "Hẻm 31 Sào Nam, Phường 11, Đà Lạt, Lâm Đồng",
+      "description": "Căn nhà gỗ nhỏ xinh giữa thung lũng, view ngắm nhà lồng lên đèn cực chill."
+    },
+    {
+      "id": "homestay_02",
+      "name": "An Nhiên Homestay Hội An",
+      "hostName": "Chị Thảo",
+      "address": "Tổ 4, Thôn Thanh Đông, Cẩm Thanh, Hội An, Quảng Nam",
+      "description": "Trải nghiệm cuộc sống thanh bình, gần gũi với thiên nhiên sông nước miền Tây sông Thu Bồn."
+    }
+  ],
+  "bookings": [
+    {
+      "id": "booking_01",
+      "userId": "user_01",
+      "itemId": "hotel_01",
+      "itemType": "Hotel",
+      "checkIn": "2026-08-15T14:00:00Z",
+      "checkOut": "2026-08-18T12:00:00Z",
+      "totalPrice": 3300000.0,
+      "status": "Confirmed"
+    },
+    {
+      "id": "booking_02",
+      "userId": "user_02",
+      "itemId": "homestay_01",
+      "itemType": "Homestay",
+      "checkIn": "2026-09-02T14:00:00Z",
+      "checkOut": "2026-09-04T12:00:00Z",
+      "totalPrice": 1200000.0,
+      "status": "Pending"
+    }
+  ]
+}

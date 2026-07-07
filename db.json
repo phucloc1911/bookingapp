@@ -90,4 +90,40 @@
       "rooms": []
     }
   ],
+  "resorts": [
+    {
+      "id": "resort_01",
+      "name": "Vinpearl Resort & Spa Phú Quốc",
+      "address": "Bãi Dài, Gành Dầu, Phú Quốc, Kiên Giang",
+      "description": "Khu nghỉ dưỡng lý tưởng với bãi biển riêng và hồ bơi vô cực siêu rộng.",
+      "starRating": 5.0,
+      "rooms": [
+        {
+          "id": "room_resort_01_01",
+          "title": "Villa 2-Bedroom Private Pool",
+          "type": "Villa",
+          "rating": 5.0,
+          "price": 5500000.0,
+"imageUrl": "https://example.com/images/rooms/villa_2b.jpg",
+          "amenities": [
+            "Private Pool",
+            "Kitchen",
+            "Wifi",
+            "Beachfront"
+          ],
+          "isFavorite": true
+        }
+      ]
+    },
+    {
+      "id": "resort_02",
+      "name": "Furama Resort Đà Nẵng",
+      "address": "105 Võ Nguyên Giáp, Khuê Mỹ, Ngũ Hành Sơn, Đà Nẵng",
+      "description": "Khu nghỉ dưỡng ẩm thực nổi tiếng, mang đậm nét kiến trúc Chăm truyền thống.",
+      "starRating": 4.8,
+      "rooms": []
+    }
+  ]
+  
+ 
 }

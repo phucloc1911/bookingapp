@@ -99,7 +99,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
 
     try {
       // Đẩy dữ liệu đơn phòng lên Firebase với trạng thái ĐÃ XÁC NHẬN
-      widget.bookingData['status'] = 'Completed';
+      widget.bookingData['status'] = 'Confirmed';
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(widget.bookingData['id'])

@@ -103,16 +103,6 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             const SizedBox(height: 20),
 
             // DANH SÁCH 4 PHƯƠNG THỨC THANH TOÁN
-            _buildPaymentCard(
-              id: 'momo',
-              title: 'Ví MoMo',
-              subtitle: 'Thanh toán siêu tốc qua ví điện tử MoMo',
-              iconData: Icons.account_balance_wallet_rounded,
-              iconColor: const Color(0xFFA50064), // Màu hồng đặc trưng MoMo
-              badgeText: 'Khuyên dùng',
-              badgeColor: Colors.pink.shade50,
-              badgeTextColor: const Color(0xFFA50064),
-            ),
             const SizedBox(height: 14),
 
             _buildPaymentCard(
@@ -125,15 +115,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               badgeColor: Colors.blue.shade50,
               badgeTextColor: primaryBlue,
             ),
-            const SizedBox(height: 14),
 
-            _buildPaymentCard(
-              id: 'zalopay',
-              title: 'Ví ZaloPay',
-              subtitle: 'Thanh toán nhanh trong 2 giây',
-              iconData: Icons.payment_rounded,
-              iconColor: const Color(0xFF008FE5), // Màu xanh ZaloPay
-            ),
             const SizedBox(height: 14),
 
             _buildPaymentCard(

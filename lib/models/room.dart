@@ -1,15 +1,17 @@
 class Room {
-  // 1. Khai báo các thuộc tính Private (Chỉ dùng trong nội bộ class này)
   String _id;
   String _title;
   String _type;
   double _rating;
   double _price;
-  String _imageUrl;
+  String _imageUrl; // Ảnh đại diện chính (Không đổi để không lỗi app)
   List<String> _amenities;
   bool _isFavorite;
+  String _description;
+  List<String> _gallery; // 🟢 THÊM: Danh sách các ảnh phụ để vuốt
+  double _price2Beds; // 🟢 THÊM GIÁ 2 GIƯỜNG
+  double _price3Beds; // 🟢 THÊM GIÁ 3 GIƯỜNG
 
-  // 2. Hàm khởi tạo (Constructor) nhận biến Public và gán vào Private
   Room({
     required String id,
     required String title,
@@ -19,16 +21,23 @@ class Room {
     required String imageUrl,
     required List<String> amenities,
     bool isFavorite = false,
-  })  : _id = id,
-        _title = title,
-        _type = type,
-        _rating = rating,
-        _price = price,
-        _imageUrl = imageUrl,
-        _amenities = amenities,
-        _isFavorite = isFavorite;
+    required String description,
+    required List<String> gallery,
+    required double price2Beds,
+    required double price3Beds,
+  }) : _id = id,
+       _title = title,
+       _type = type,
+       _rating = rating,
+       _price = price,
+       _imageUrl = imageUrl,
+       _amenities = amenities,
+       _isFavorite = isFavorite,
+       _description = description,
+       _gallery = gallery,
+       _price2Beds = price2Beds,
+       _price3Beds = price3Beds;
 
-  // 3. Hàm từ điển: Đổ dữ liệu JSON từ Firebase về App
   factory Room.fromJson(Map<String, dynamic> json) {
     return Room(
       id: json['id'] ?? '',
@@ -37,12 +46,21 @@ class Room {
       rating: (json['rating'] ?? 0.0).toDouble(),
       price: (json['price'] ?? 0.0).toDouble(),
       imageUrl: json['imageUrl'] ?? '',
-      amenities: json['amenities'] != null ? List<String>.from(json['amenities']) : [],
+      amenities: json['amenities'] != null
+          ? List<String>.from(json['amenities'])
+          : [],
       isFavorite: json['isFavorite'] ?? false,
+      description: json['description'] ?? 'Chưa có mô tả cho phòng này.',
+      gallery: json['gallery'] != null
+          ? List<String>.from(json['gallery'])
+          : [], // 🟢 ĐỌC TỪ FIREBASE
+      price2Beds: (json['price2Beds'] ?? (json['price'] ?? 0.0))
+          .toDouble(), // Mặc định bằng giá 1 giường nếu trống
+      price3Beds: (json['price3Beds'] ?? (json['price'] ?? 0.0)).toDouble(),
     );
   }
 
-  // 4. GETTERS: Cho phép các màn hình khác đọc dữ liệu
+  // GETTERS & SETTERS
   String get id => _id;
   String get title => _title;
   String get type => _type;
@@ -51,35 +69,58 @@ class Room {
   String get imageUrl => _imageUrl;
   List<String> get amenities => _amenities;
   bool get isFavorite => _isFavorite;
-
-  // 5. SETTERS: Cho phép các màn hình khác thay đổi/cập nhật dữ liệu
+  String get description => _description;
+  List<String> get gallery => _gallery; // 🟢 GETTER
+  double get price2Beds => _price2Beds;
+  double get price3Beds => _price3Beds;
   set id(String value) {
     _id = value;
   }
+
   set title(String value) {
     _title = value;
   }
+
   set type(String value) {
     _type = value;
   }
+
   set rating(double value) {
     _rating = value;
   }
+
   set price(double value) {
-    // Có thể thêm logic kiểm tra giá trị ở đây (VD: if (value > 0) ...)
     _price = value;
   }
+
   set imageUrl(String value) {
     _imageUrl = value;
   }
+
   set amenities(List<String> value) {
     _amenities = value;
   }
+
   set isFavorite(bool value) {
     _isFavorite = value;
   }
 
-  // 6. Hàm từ điển: Đóng gói đối tượng thành JSON để đẩy lên Firebase
+  set description(String value) {
+    _description = value;
+  }
+
+  set gallery(List<String> value) {
+    _gallery = value;
+  } // 🟢 SETTER
+
+  set price2Beds(double value) {
+    _price2Beds = value;
+  }
+
+  set price3Beds(double value) {
+    _price3Beds = value;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
@@ -90,6 +131,10 @@ class Room {
       'imageUrl': _imageUrl,
       'amenities': _amenities,
       'isFavorite': _isFavorite,
+      'description': _description,
+      'gallery': _gallery,
+      'price2Beds': _price2Beds,
+      'price3Beds': _price3Beds,
     };
   }
 }

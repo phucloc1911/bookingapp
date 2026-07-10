@@ -1,3 +1,4 @@
+import 'package:bookingapp/screens/profile/payment_method_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +9,9 @@ import '../profile/edit_profile_screen.dart';
 import '../profile/about_screen.dart';
 import '../profile/help_center_screen.dart';
 import '../profile/security_screen.dart';
-import 'package:bookingapp/screens/profile/payment_method_screen.dart'; // Sửa lại đường dẫn nếu cần
+import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
+
+import '../admin/admin_dashboard_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -140,6 +143,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     builder: (context, snapshot) {
                       String name = "Đang tải...";
                       String email = currentUser?.email ?? "Không có email";
+                      bool isAdmin = false;
                       String phone = "Chưa cập nhật";
 
                       if (snapshot.hasData && snapshot.data!.exists) {
@@ -150,8 +154,9 @@ class _AccountScreenState extends State<AccountScreen> {
                             currentUser?.displayName ??
                             "Người dùng Reservo";
                         phone = data['phoneNumber'] ?? "Chưa cập nhật";
-                      } else if (currentUser != null) {
-                        name = currentUser!.displayName ?? "Người dùng Google";
+                        if (data['role'] == 'admin') {
+                          isAdmin = true;
+                        }
                       }
 
                       return Container(
@@ -226,14 +231,6 @@ class _AccountScreenState extends State<AccountScreen> {
                                             6,
                                           ),
                                         ),
-                                        child: const Text(
-                                          "🌟 Thành viên Standard",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.orange,
-                                          ),
-                                        ),
                                       ),
                                     ],
                                   ),
@@ -243,24 +240,6 @@ class _AccountScreenState extends State<AccountScreen> {
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 12),
                               child: Divider(height: 1),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildQuickStat("0", "Khách sạn"),
-                                Container(
-                                  height: 30,
-                                  width: 1,
-                                  color: Colors.grey.shade200,
-                                ),
-                                _buildQuickStat("0", "Voucher"),
-                                Container(
-                                  height: 30,
-                                  width: 1,
-                                  color: Colors.grey.shade200,
-                                ),
-                                _buildQuickStat("0", "Đánh giá"),
-                              ],
                             ),
                           ],
                         ),
@@ -311,7 +290,14 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildTile(
                       Icons.favorite_border_rounded,
                       "Khách sạn yêu thích",
-                      () {},
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FavoriterScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ]),
 
@@ -332,7 +318,6 @@ class _AccountScreenState extends State<AccountScreen> {
                       Icons.credit_card_rounded,
                       "Phương thức thanh toán",
                       () {
-                        // NỐI DÂY GỌI TRANG THANH TOÁN TẠI ĐÂY
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -376,6 +361,61 @@ class _AccountScreenState extends State<AccountScreen> {
                   ]),
                   const SizedBox(height: 30),
 
+                  // 🟢 NÚT ĐẶC QUYỀN CHỈ HIỆN CHO ADMIN
+                  // =======================================================
+                  // 🟢 KHỐI MENU DÀNH RIÊNG CHO ADMIN (Tự động kiểm tra quyền)
+                  // =======================================================
+                  FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(currentUser?.uid)
+                        .get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.exists) {
+                        final data =
+                            snapshot.data!.data() as Map<String, dynamic>;
+                        // Kiểm tra nếu có trường role là admin thì mới hiện
+                        if (data['role'] == 'admin') {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4, bottom: 10),
+                                child: Text(
+                                  "QUẢN TRỊ VIÊN",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ),
+                              _buildOptionGroup([
+                                _buildTile(
+                                  Icons.admin_panel_settings,
+                                  "Bảng điều khiển Admin",
+                                  () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const AdminDashboardScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ]),
+                              const SizedBox(height: 30),
+                            ],
+                          );
+                        }
+                      }
+                      // Nếu không phải admin, trả về một khoảng trống tàng hình (không hiện gì cả)
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                  // =======================================================
+
                   // NÚT ĐĂNG XUẤT ĐỎ NỔI BẬT
                   SizedBox(
                     width: double.infinity,
@@ -393,6 +433,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           ),
                         ),
                       ),
+
                       icon: const Icon(Icons.logout_rounded, size: 22),
                       label: const Text(
                         "Đăng xuất khỏi tài khoản",

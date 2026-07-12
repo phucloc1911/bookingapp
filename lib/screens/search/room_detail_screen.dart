@@ -3,7 +3,6 @@ import 'package:bookingapp/models/room.dart';
 import 'package:bookingapp/screens/booking/booking_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Nhớ kiểm tra lại đường dẫn này cho khớp nhé
 class RoomDetailScreen extends StatefulWidget {
   final Room room;
   const RoomDetailScreen({super.key, required this.room});
@@ -13,13 +12,74 @@ class RoomDetailScreen extends StatefulWidget {
 }
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
-  int _currentImageIndex = 0; // Lưu vị trí ảnh đang xem
+  int _currentImageIndex = 0; 
+  bool _isFavorite = false; 
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite(); 
+  }
+
+  // 🟢 Kiểm tra dữ liệu yêu thích trên Firestore
+  Future<void> _checkIfFavorite() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('favorites')
+        .doc(widget.room.id)
+        .get();
+    
+    if (doc.exists) {
+      setState(() {
+        _isFavorite = true;
+      });
+    }
+  }
+
+  // 🟢 Xử lý khi bấm nút Yêu thích
+  Future<void> _toggleFavorite() async {
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    try {
+      if (_isFavorite) {
+        // LƯU Ý: Dùng toJson() theo đúng model Room của bạn
+        await FirebaseFirestore.instance
+            .collection('favorites')
+            .doc(widget.room.id)
+            .set(widget.room.toJson());
+      } else {
+        await FirebaseFirestore.instance
+            .collection('favorites')
+            .doc(widget.room.id)
+            .delete();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isFavorite 
+                ? "Đã thêm vào danh sách yêu thích!" 
+                : "Đã xóa khỏi danh sách yêu thích!",
+            ),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hoàn tác trạng thái UI nếu lỗi
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     const Color primaryBlue = Color(0xFF0066FF);
 
-    // 🟢 Gom ảnh đại diện và ảnh phụ thành 1 danh sách duy nhất để vuốt
     final List<String> allImages = [
       if (widget.room.imageUrl.isNotEmpty) widget.room.imageUrl,
       ...widget.room.gallery,
@@ -29,18 +89,28 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // KHỐI 1: Ảnh bìa trên cùng dạng Slider
+          // KHỐI 1: Ảnh bìa + Nút AppBar
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
             backgroundColor: primaryBlue,
             iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: _isFavorite ? Colors.redAccent : Colors.white,
+                  size: 28,
+                ),
+                onPressed: _toggleFavorite,
+              ),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: allImages.isNotEmpty
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        // 🟢 PAGE VIEW ĐỂ VUỐT ẢNH
                         PageView.builder(
                           onPageChanged: (index) {
                             setState(() {
@@ -63,7 +133,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                             );
                           },
                         ),
-                        // 🟢 CỤC HIỂN THỊ SỐ TRANG (VD: 1 / 4)
                         if (allImages.length > 1)
                           Positioned(
                             bottom: 16,
@@ -101,7 +170,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           ),
 
           // KHỐI 2: Nội dung chi tiết cuộn bên dưới
-          // KHỐI 2: Nội dung chi tiết cuộn bên dưới + Tích hợp Đánh giá Realtime
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -109,9 +177,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   .where('roomId', isEqualTo: widget.room.id)
                   .snapshots(),
               builder: (context, snapshot) {
-                // 1. TÍNH TOÁN SỐ SAO TRUNG BÌNH VÀ TỔNG SỐ ĐÁNH GIÁ
-                double avgRating =
-                    widget.room.rating; // Mặc định nếu chưa có đánh giá
+                double avgRating = widget.room.rating; 
                 int totalReviews = 0;
                 List<QueryDocumentSnapshot> reviews = [];
 
@@ -122,10 +188,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   for (var doc in reviews) {
                     totalStars += (doc['rating'] ?? 5).toDouble();
                   }
-                  avgRating = totalStars / totalReviews; // Chia trung bình
+                  avgRating = totalStars / totalReviews;
                 }
 
-                // Giới hạn hiển thị tối đa 3 đánh giá trên màn hình chính
                 int displayCount = reviews.length > 3 ? 3 : reviews.length;
 
                 return Padding(
@@ -133,7 +198,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Tên & Loại phòng
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +234,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // 🟢 HIỂN THỊ ĐIỂM SỐ THỰC TẾ ĐÃ TÍNH TOÁN
                       Row(
                         children: [
                           const Icon(
@@ -193,7 +256,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         child: Divider(height: 1),
                       ),
 
-                      // Tiện nghi nổi bật
                       const Text(
                         "Tiện nghi nổi bật",
                         style: TextStyle(
@@ -207,20 +269,21 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         runSpacing: 16,
                         children: widget.room.amenities.map((amenity) {
                           IconData icon;
-                          if (amenity == "Wifi Miễn phí")
+                          if (amenity == "Wifi Miễn phí") {
                             icon = Icons.wifi;
-                          else if (amenity == "Đỗ xe")
+                          } else if (amenity == "Đỗ xe") {
                             icon = Icons.directions_car;
-                          else if (amenity == "Hồ bơi")
+                          } else if (amenity == "Hồ bơi") {
                             icon = Icons.pool;
-                          else if (amenity == "Máy lạnh")
+                          } else if (amenity == "Máy lạnh") {
                             icon = Icons.ac_unit;
-                          else if (amenity == "Nhà hàng")
+                          } else if (amenity == "Nhà hàng") {
                             icon = Icons.restaurant;
-                          else if (amenity == "Lễ tân 24/7")
+                          } else if (amenity == "Lễ tân 24/7") {
                             icon = Icons.support_agent;
-                          else
+                          } else {
                             icon = Icons.star;
+                          }
                           return _buildAmenityIcon(icon, amenity);
                         }).toList(),
                       ),
@@ -229,7 +292,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         child: Divider(height: 1),
                       ),
 
-                      // Mô tả
                       const Text(
                         "Mô tả",
                         style: TextStyle(
@@ -252,7 +314,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         child: Divider(height: 1),
                       ),
 
-                      // 🟢 DANH SÁCH ĐÁNH GIÁ (GIỚI HẠN GỌN GÀNG)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -265,9 +326,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           ),
                           if (totalReviews > 3)
                             InkWell(
-                              onTap: () => _showAllReviewsBottomSheet(
-                                reviews,
-                              ), // Mở bảng Xem tất cả
+                              onTap: () => _showAllReviewsBottomSheet(reviews),
                               child: const Text(
                                 "Xem tất cả",
                                 style: TextStyle(
@@ -293,10 +352,9 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.zero,
-                          itemCount: displayCount, // Chỉ hiện tối đa 3 cái
+                          itemCount: displayCount,
                           itemBuilder: (context, index) {
-                            final revData =
-                                reviews[index].data() as Map<String, dynamic>;
+                            final revData = reviews[index].data() as Map<String, dynamic>;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
                               child: _buildReviewCard(
@@ -308,7 +366,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           },
                         ),
 
-                      // Nút xem tất cả ở dưới cùng (nếu muốn nhấn mạnh)
                       if (totalReviews > 3)
                         Center(
                           child: OutlinedButton(
@@ -319,8 +376,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () =>
-                                _showAllReviewsBottomSheet(reviews),
+                            onPressed: () => _showAllReviewsBottomSheet(reviews),
                             child: Text("Xem tất cả $totalReviews đánh giá"),
                           ),
                         ),
@@ -335,7 +391,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         ],
       ),
 
-      // KHỐI 3: Thanh công cụ Đặt phòng ở dưới cùng
+      // KHỐI 3: Bottom Navigation Bar
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: const BoxDecoration(
@@ -405,17 +461,16 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  // Hàm hiển thị Bảng Xem tất cả đánh giá
   void _showAllReviewsBottomSheet(List<QueryDocumentSnapshot> allReviews) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Cho phép kéo cao lên
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.7, // Mở ra chiếm 70% màn hình
+          initialChildSize: 0.7,
           minChildSize: 0.5,
-          maxChildSize: 0.95, // Kéo tối đa 95%
+          maxChildSize: 0.95,
           builder: (_, controller) {
             return Container(
               padding: const EdgeInsets.all(20),
@@ -447,12 +502,10 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: ListView.builder(
-                      controller:
-                          controller, // Dùng controller này để cuộn mượt trong BottomSheet
+                      controller: controller,
                       itemCount: allReviews.length,
                       itemBuilder: (context, index) {
-                        final revData =
-                            allReviews[index].data() as Map<String, dynamic>;
+                        final revData = allReviews[index].data() as Map<String, dynamic>;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
                           child: _buildReviewCard(
@@ -495,7 +548,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
   }
 }
 
-// Widget vẽ khung đánh giá
 Widget _buildReviewCard(String name, String comment, int rating) {
   return Container(
     padding: const EdgeInsets.all(16),
@@ -510,7 +562,6 @@ Widget _buildReviewCard(String name, String comment, int rating) {
           children: [
             CircleAvatar(
               backgroundColor: Colors.blue.shade200,
-              // Xử lý lỗi nếu tên bị rỗng
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : 'U',
                 style: const TextStyle(
@@ -528,13 +579,10 @@ Widget _buildReviewCard(String name, String comment, int rating) {
                     name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  // 🟢 VẼ ĐÚNG SỐ SAO KHÁCH ĐÁNH GIÁ THAY VÌ FIX CỨNG 5 SAO
                   Row(
                     children: List.generate(5, (index) {
                       return Icon(
-                        index < rating
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
+                        index < rating ? Icons.star_rounded : Icons.star_outline_rounded,
                         color: Colors.amber,
                         size: 16,
                       );

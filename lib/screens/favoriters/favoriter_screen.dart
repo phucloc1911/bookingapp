@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bookingapp/models/room.dart';
+import 'package:bookingapp/screens/search/room_detail_screen.dart';
 
 class FavoriterScreen extends StatefulWidget {
   const FavoriterScreen({super.key});
@@ -8,73 +11,63 @@ class FavoriterScreen extends StatefulWidget {
 }
 
 class _FavoriterScreenState extends State<FavoriterScreen> {
-  // 1. CÁC BIẾN QUẢN LÝ TRẠNG THÁI BỘ LỌC
+  // CÁC BIẾN QUẢN LÝ BỘ LỌC
   String _selectedType = 'Tất cả';
-  String _selectedRating = '4.5+';
+  String _selectedRating = 'Tất cả'; // Mặc định hiển thị tất cả, khi chọn sẽ áp dụng logic 5 Sao, 4.5+,...
   String _selectedSort = 'Phổ biến nhất';
+  String _searchQuery = ''; 
 
-  // 2. BIẾN QUẢN LÝ CHẾ ĐỘ XÓA
-  bool _isManageMode = false; // Theo dõi xem có đang bật chế độ Quản lý (hiện Checkbox) không
+  // QUẢN LÝ TRẠNG THÁI XÓA
+  bool _isManageMode = false; 
+  final Set<String> _selectedIds = {}; 
 
-  // 3. DANH SÁCH DỮ LIỆU PHÒNG (Dùng List để quản lý trạng thái chọn và Xóa)
-  final List<Map<String, dynamic>> _favoriteRooms = [
-    {'id': '1', 'title': 'Pine Hill Home...', 'rating': '4.8/5', 'price': '\$430/night', 'color': Colors.green[200], 'isSelected': false},
-    {'id': '2', 'title': 'Sea Breeze Resort', 'rating': '4.7/5', 'price': '\$550/night', 'color': Colors.blue[200], 'isSelected': false},
-    {'id': '3', 'title': 'Aura City Loft', 'rating': '4.7/5', 'price': '\$380/night', 'color': Colors.orange[200], 'isSelected': false},
-    {'id': '4', 'title': 'A cozy cabin', 'rating': '4.7/5', 'price': '\$350/night', 'color': Colors.brown[200], 'isSelected': false},
-    {'id': '5', 'title': 'A modern City Apartment', 'rating': '4.9/5', 'price': '\$120/night', 'color': Colors.grey[300], 'isSelected': false},
-  ];
+  Future<void> _deleteSelectedRooms() async {
+    final batch = FirebaseFirestore.instance.batch();
+    
+    for (String id in _selectedIds) {
+      final docRef = FirebaseFirestore.instance.collection('favorites').doc(id);
+      batch.delete(docRef);
+    }
 
-  // Hàm đếm xem có bao nhiêu phòng đang được tích chọn
-  int get _selectedCount => _favoriteRooms.where((room) => room['isSelected'] == true).length;
+    await batch.commit(); 
 
-  // Hàm xử lý Xóa các mục đã chọn
-  void _deleteSelectedRooms() {
     setState(() {
-      // Xóa tất cả các phần tử có isSelected = true
-      _favoriteRooms.removeWhere((room) => room['isSelected'] == true);
-      _isManageMode = false; // Xóa xong thì tắt chế độ quản lý
+      _selectedIds.clear(); 
+      _isManageMode = false; 
     });
     
-    // Hiện thông báo (SnackBar) nhỏ ở dưới đáy
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã xóa các mục được chọn khỏi danh sách')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xóa các mục được chọn khỏi danh sách yêu thích')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      
-      // ==========================================
-      // APPBAR
-      // ==========================================
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0, 
         automaticallyImplyLeading: true,
-        title: Text(
-          'Yêu thích (${_favoriteRooms.length})', // Số lượng tự động cập nhật
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 22),
+        title: const Text(
+          'Yêu thích', 
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 22),
         ),
         actions: [
           TextButton(
             onPressed: () {
               setState(() {
-                _isManageMode = !_isManageMode; // Đảo ngược trạng thái
-                
-                // Nếu người dùng bấm "Hủy" (tắt chế độ quản lý), thì xóa hết các dấu tích
+                _isManageMode = !_isManageMode; 
                 if (!_isManageMode) {
-                  for (var room in _favoriteRooms) {
-                    room['isSelected'] = false;
-                  }
+                  _selectedIds.clear(); 
                 }
               });
             },
             child: Text(
-              _isManageMode ? 'Hủy' : 'Chọn tất cả', // Thay đổi chữ trên nút
+              _isManageMode ? 'Hủy' : 'Quản lý', 
               style: TextStyle(
                 color: _isManageMode ? Colors.redAccent : Colors.blue, 
                 fontSize: 16,
@@ -84,10 +77,6 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
           ),
         ],
       ),
-
-      // ==========================================
-      // BODY
-      // ==========================================
       body: Column(
         children: [
           // --- Thanh tìm kiếm ---
@@ -96,8 +85,13 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
             child: Container(
               height: 45,
               decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(24.0)),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+                decoration: const InputDecoration(
                   hintText: 'Tìm kiếm trong mục yêu thích',
                   hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                   prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -108,12 +102,11 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
             ),
           ),
 
-          // --- Bộ lọc nhanh ngang ---
+          // --- Bộ lọc nhanh ---
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
             child: Row(
-              
               children: [
                 _buildFilterChip('Loại hình', _selectedType, () {
                   _showBottomSheetMenu('Chọn loại hình', ['Tất cả', 'Khách sạn', 'Homestay', 'Resort', 'Biệt thự'], _selectedType, (value) {
@@ -122,6 +115,7 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
                 }),
                 const SizedBox(width: 16),
                 _buildFilterChip('Xếp hạng', _selectedRating, () {
+                  // 🟢 Đồng bộ danh sách chọn cho khớp với logic filter bên dưới
                   _showBottomSheetMenu('Chọn xếp hạng tối thiểu', ['Tất cả', '5 Sao', '4.5+', '4.0+', '3.0+'], _selectedRating, (value) {
                     setState(() { _selectedRating = value; });
                   });
@@ -135,16 +129,77 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 8),
 
-          // --- Danh sách dạng Lưới (Grid) ---
+          // 🟢 STREAM BUILDER
           Expanded(
-            child: _favoriteRooms.isEmpty 
-              ? const Center(child: Text('Không có mục yêu thích nào'))
-              : GridView.builder(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('favorites').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('Không có mục yêu thích nào.'));
+                }
+
+                // Chuyển đổi dữ liệu từ Firestore và gán ID
+                var rawData = snapshot.data!.docs.map((doc) {
+                  var data = doc.data() as Map<String, dynamic>;
+                  data['id'] = doc.id;
+                  return data;
+                }).toList();
+
+                // 🟢 1. LOGIC LỌC DỮ LIỆU TÍCH HỢP ĐỦ THEO SAO VÀ TỪ KHÓA
+                var filteredRooms = rawData.where((data) {
+                  // Lọc theo tìm kiếm văn bản
+                  final title = (data['title'] ?? '').toString().toLowerCase();
+                  bool matchesSearch = title.contains(_searchQuery);
+
+                  // Lọc theo loại hình nơi ở
+                  final type = (data['type'] ?? '').toString();
+                  bool matchesType = _selectedType == 'Tất cả' || type == _selectedType;
+
+                  // 🟢 LOGIC LỌC THEO SỐ SAO (RATING) CHÍNH XÁC
+                  final rating = (data['rating'] ?? 0.0).toDouble();
+                  bool matchesRating = true;
+                  
+                  if (_selectedRating == '5 Sao') {
+                    matchesRating = rating == 5.0; // Chỉ lấy phòng đạt tối đa 5 sao tròn
+                  } else if (_selectedRating == '4.5+') {
+                    matchesRating = rating >= 4.5;
+                  } else if (_selectedRating == '4.0+') {
+                    matchesRating = rating >= 4.0;
+                  } else if (_selectedRating == '3.0+') {
+                    matchesRating = rating >= 3.0;
+                  }
+
+                  return matchesSearch && matchesType && matchesRating;
+                }).toList();
+
+                // 🟢 2. LOGIC SẮP XẾP DỮ LIỆU
+                if (_selectedSort == 'Giá thấp - cao') {
+                  filteredRooms.sort((a, b) => (a['price'] ?? 0.0).compareTo(b['price'] ?? 0.0));
+                } else if (_selectedSort == 'Giá cao - thấp') {
+                  filteredRooms.sort((a, b) => (b['price'] ?? 0.0).compareTo(a['price'] ?? 0.0));
+                } else if (_selectedSort == 'Đánh giá cao') {
+                  filteredRooms.sort((a, b) => (b['rating'] ?? 0.0).compareTo(a['rating'] ?? 0.0));
+                }
+
+                // 🟢 3. TRẢ VỀ GIAO DIỆN SAU KHI ĐÃ LỌC & SẮP XẾP
+                if (filteredRooms.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Không tìm thấy phòng phù hợp với bộ lọc.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-                  itemCount: _favoriteRooms.length,
+                  itemCount: filteredRooms.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2, 
                     crossAxisSpacing: 16.0,
@@ -152,27 +207,28 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
                     childAspectRatio: 0.75,
                   ),
                   itemBuilder: (context, index) {
-                    return _buildFavoriteCard(_favoriteRooms[index]);
+                    return _buildFavoriteCard(filteredRooms[index]);
                   },
-              ),
+                );
+              }
+            ),
           ),
 
-          // --- THANH QUẢN LÝ (CHỈ HIỆN KHI BẬT CHẾ ĐỘ QUẢN LÝ) ---
+          // --- THANH CÔNG CỤ XÓA HÀNG LOẠT ---
           if (_isManageMode)
             Container(
               padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
               ),
               child: SafeArea(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Đã chọn: $_selectedCount mục', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    Text('Đã chọn: ${_selectedIds.length} mục', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                     ElevatedButton(
-                      // Nếu chưa chọn mục nào thì khóa nút bấm lại (null)
-                      onPressed: _selectedCount > 0 ? _deleteSelectedRooms : null,
+                      onPressed: _selectedIds.isNotEmpty ? _deleteSelectedRooms : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
@@ -189,10 +245,6 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
       ),
     );
   }
-
-  // ==========================================
-  // CÁC HÀM HỖ TRỢ VẼ GIAO DIỆN
-  // ==========================================
 
   void _showBottomSheetMenu(String title, List<String> options, String currentValue, Function(String) onSelected) {
     showModalBottomSheet(
@@ -241,43 +293,49 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
     );
   }
 
-  // Hàm vẽ Thẻ Phòng (Cập nhật để hỗ trợ Checkbox)
-  Widget _buildFavoriteCard(Map<String, dynamic> room) {
+  Widget _buildFavoriteCard(Map<String, dynamic> data) {
+    final roomId = data['id'];
+    final bool isSelected = _selectedIds.contains(roomId); 
+    
+    // Tạo Object Room thông qua factory json mẫu của bạn
+    final Room currentRoom = Room.fromJson(data);
+
     return GestureDetector(
-      // Cho phép bấm vào thẻ để chọn khi đang ở chế độ quản lý
       onTap: () {
         if (_isManageMode) {
           setState(() {
-            room['isSelected'] = !room['isSelected'];
+            if (isSelected) {
+              _selectedIds.remove(roomId);
+            } else {
+              _selectedIds.add(roomId);
+            }
           });
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RoomDetailScreen(room: currentRoom),
+            ),
+          );
         }
       },
       child: Dismissible(
-        key: Key(room['id']), 
-        // Khi bật chế độ quản lý thì khóa tính năng vuốt ngang lại
+        key: Key(roomId), 
         direction: _isManageMode ? DismissDirection.none : DismissDirection.endToStart, 
-        
-        // Giao diện khi vuốt xóa từng cái một
         background: Container(
           decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12.0)),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20.0),
           child: const Text('XÓA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
-        
-        // Sự kiện khi người dùng vuốt xong để xóa 1 thẻ
         onDismissed: (direction) {
-          setState(() {
-            _favoriteRooms.removeWhere((r) => r['id'] == room['id']);
-          });
+          FirebaseFirestore.instance.collection('favorites').doc(roomId).delete();
         },
-
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12.0),
-            // Đổi màu viền nếu thẻ đang được chọn
-            border: room['isSelected'] ? Border.all(color: Colors.blueAccent, width: 2) : null,
+            border: isSelected ? Border.all(color: Colors.blueAccent, width: 2) : null,
             boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 2))],
           ),
           child: Column(
@@ -285,24 +343,31 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
             children: [
               Expanded(
                 child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Container(decoration: BoxDecoration(color: room['color'], borderRadius: const BorderRadius.vertical(top: Radius.circular(11.0)))),
-                    
-                    // Nút Trái tim (Chỉ hiện khi KHÔNG ở chế độ Quản lý)
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(11.0)),
+                      child: currentRoom.imageUrl.isNotEmpty
+                          ? Image.network(currentRoom.imageUrl, fit: BoxFit.cover)
+                          : Container(color: Colors.blue.shade100, child: const Icon(Icons.image, color: Colors.white)),
+                    ),
                     if (!_isManageMode)
                       const Positioned(top: 8, right: 8, child: Icon(Icons.favorite, color: Colors.redAccent, size: 20)),
-                    
-                    // Ô Checkbox (Chỉ hiện khi ĐANG ở chế độ Quản lý)
                     if (_isManageMode)
                       Positioned(
-                        top: 4, 
-                        left: 4, 
+                        top: 4, left: 4, 
                         child: Checkbox(
-                          value: room['isSelected'], 
+                          value: isSelected, 
                           activeColor: Colors.blueAccent,
-                          shape: const CircleBorder(), // Ô checkbox hình tròn nhìn hiện đại hơn
+                          shape: const CircleBorder(),
                           onChanged: (value) {
-                            setState(() { room['isSelected'] = value ?? false; });
+                            setState(() { 
+                              if (value == true) {
+                                _selectedIds.add(roomId);
+                              } else {
+                                _selectedIds.remove(roomId);
+                              }
+                            });
                           }
                         )
                       ),
@@ -317,29 +382,20 @@ class _FavoriterScreenState extends State<FavoriterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(child: Text(room['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        Expanded(child: Text(currentRoom.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         Row(
                           children: [
                             const Icon(Icons.star, color: Colors.amber, size: 12),
-                            Text(room['rating'], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text(currentRoom.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         )
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.pool, size: 10, color: Colors.grey[600]),
-                        const SizedBox(width: 2),
-                        Text('Pool', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                        const SizedBox(width: 6),
-                        Icon(Icons.wifi, size: 10, color: Colors.grey[600]),
-                        const SizedBox(width: 2),
-                        Text('Free Wifi', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                      ],
+                    Text(
+                      "${currentRoom.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ / đêm", 
+                      style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 11)
                     ),
-                    const SizedBox(height: 4),
-                    Text(room['price'], style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
               )

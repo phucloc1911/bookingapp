@@ -12,6 +12,7 @@ import 'package:bookingapp/services/gg_map.dart';
 import 'package:bookingapp/screens/search/search_screen.dart';
 import 'package:bookingapp/models/room.dart';
 import 'package:bookingapp/screens/search/room_detail_screen.dart'; // Sửa lại đường dẫn nơi bạn lưu file
+import 'package:bookingapp/screens/search/home_search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -49,7 +50,16 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const TextField(
+              child: TextField(
+                readOnly: true,
+
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeSearchScreen()),
+                  );
+                },
+
                 decoration: InputDecoration(
                   hintText: 'Bạn muốn tìm phòng ở đâu?',
                   hintStyle: TextStyle(color: Colors.grey),

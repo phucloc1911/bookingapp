@@ -1,4 +1,3 @@
-import 'package:bookingapp/screens/booking/booking_screen.dart';
 import 'package:bookingapp/screens/booking/my_booking_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

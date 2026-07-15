@@ -28,7 +28,7 @@ class SearchScreen extends StatelessWidget {
       ),
 
       body: StreamBuilder<QuerySnapshot>(
-        // 🟢 ĐÃ CHUYỂN VỀ BẢNG 'rooms' CHO KHỚP VỚI FIREBASE CỦA BẠN
+        //  ĐÃ CHUYỂN VỀ BẢNG 'rooms' CHO KHỚP VỚI FIREBASE CỦA BẠN
         stream: FirebaseFirestore.instance
             .collection('rooms')
             .where('type', isEqualTo: categoryType)
@@ -82,7 +82,7 @@ class SearchScreen extends StatelessWidget {
               final roomId = rooms[index].id;
 
               final String name = roomData['name'] ?? 'Chưa cập nhật tên';
-              // 🟢 Dùng trường 'address' thay vì 'location' để chuẩn với Firebase
+
               final String location =
                   roomData['address'] ?? 'Chưa cập nhật địa chỉ';
 

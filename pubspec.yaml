@@ -34,6 +34,15 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  firebase_core: ^4.11.0
+  firebase_auth: ^6.5.4
+  cloud_firestore: ^6.6.0
+  google_sign_in: ^7.2.0
+  url_launcher: ^6.3.2
+  intl: ^0.20.3
+
+  shimmer: ^3.0.0
+
 
 dev_dependencies:
   flutter_test:
@@ -45,11 +54,15 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-
+  flutter_native_splash: ^2.4.8
+  flutter_launcher_icons: ^0.13.1
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Flutter packages.
+flutter_icons:
+  android: true       # Tạo icon cho Android
+  ios: true           # Tạo icon cho iOS
+  image_path: "assets/images/iconapp.png"
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -58,9 +71,9 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/logofull.png
+    - assets/images/logomini.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -87,3 +100,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_native_splash:
+  # Màu nền của màn hình chờ (ví dụ: #FFFFFF là màu trắng)
+  color: "#FFFFFF"
+  
+  # Đường dẫn tới logo của bạn (Đã sửa bỏ ..)
+  image: "assets/images/logomini.png"
+  
+  # Hỗ trợ riêng cho Android 12 trở lên (bắt buộc phải có để không bị lỗi hiển thị)
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/images/logomini.png"

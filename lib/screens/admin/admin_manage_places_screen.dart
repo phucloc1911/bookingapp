@@ -30,8 +30,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
     "Nhà hàng",
     "Lễ tân 24/7",
   ];
-  final _galleryCtrl =
-      TextEditingController(); // 🟢 Link ảnh phụ (cách nhau dấu phẩy)
+  final _galleryCtrl = TextEditingController();
   // Hàm mở Dialog Form
   void _showAddDialog() {
     _selectedAmenities.clear(); // Xóa dữ liệu cũ khi mở form mới
@@ -110,7 +109,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                         labelText: "Giá 1 giường / 1 đêm",
                       ),
                     ),
-                    // 🟢 THÊM 2 Ô NÀY
+
                     TextField(
                       controller: _price2Ctrl,
                       keyboardType: TextInputType.number,
@@ -131,7 +130,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                         labelText: "Link ảnh đại diện chính",
                       ),
                     ),
-                    // 🟢 THÊM Ô NHẬP ẢNH PHỤ
+
                     TextField(
                       controller: _galleryCtrl,
                       maxLines: 2,
@@ -140,7 +139,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                             "Link các ảnh phụ (cách nhau bằng dấu phẩy ,)",
                       ),
                     ),
-                    // 🟢 THÊM NHẬP MÔ TẢ
+
                     TextField(
                       controller: _descCtrl,
                       maxLines: 3, // Cho phép nhập dài 3 dòng
@@ -150,7 +149,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 🟢 THÊM CHỌN TIỆN NGHI (CHECKBOX)
                     const Text(
                       "Tiện nghi nổi bật:",
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -201,15 +199,13 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
     if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty) return;
 
     try {
-      // 🟢 TRỎ VÀO COLLECTION 'rooms' CHO ĐÚNG DATABASE CỦA BẠN
       await FirebaseFirestore.instance.collection('rooms').add({
         'name': _nameCtrl.text.trim(),
         'type': _selectedType,
         'address': _addressCtrl.text.trim(),
-        'description': _descCtrl.text.trim(), // Thêm trường description
+        'description': _descCtrl.text.trim(),
         'price': double.tryParse(_priceCtrl.text.trim()) ?? 0,
         'imageUrl': _imageCtrl.text.trim(),
-        // 🟢 LƯU THÊM MÔ TẢ VÀ TIỆN NGHI VÀO FIREBASE
         'description': _descCtrl.text.trim(),
         'amenities': _selectedAmenities,
 
@@ -268,7 +264,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
     _nameCtrl.text = data['name'] ?? '';
     _addressCtrl.text = data['address'] ?? '';
     _selectedType = data['type'] ?? 'Khách sạn';
-    // 🟢 ĐỔ DỮ LIỆU GIÁ 1, 2, 3 GIƯỜNG (Nếu chưa có thì lấy giá 1 giường mặc định)
     _priceCtrl.text = (data['price'] ?? 0).toString();
     _price2Ctrl.text = (data['price2Beds'] ?? data['price'] ?? 0).toString();
     _price3Ctrl.text = (data['price3Beds'] ?? data['price'] ?? 0).toString();
@@ -314,7 +309,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                       decoration: const InputDecoration(labelText: "Địa chỉ"),
                     ),
 
-                    // 🟢 3 Ô NHẬP GIÁ
                     TextField(
                       controller: _priceCtrl,
                       keyboardType: TextInputType.number,
@@ -395,7 +389,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    _clearForm(); // Xóa sạch form nếu ấn Hủy
+                    _clearForm();
                   },
                   child: const Text(
                     "Hủy",
@@ -430,7 +424,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
         'name': _nameCtrl.text.trim(),
         'address': _addressCtrl.text.trim(),
 
-        // 🟢 CẬP NHẬT ĐỒNG THỜI 3 MỨC GIÁ
         'price': double.tryParse(_priceCtrl.text.trim()) ?? 0,
         'price2Beds': double.tryParse(_price2Ctrl.text.trim()) ?? 0,
         'price3Beds': double.tryParse(_price3Ctrl.text.trim()) ?? 0,
@@ -470,7 +463,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // 🟢 ĐỌC DỮ LIỆU TỪ BẢNG 'rooms'
         stream: FirebaseFirestore.instance
             .collection('rooms')
             .orderBy('createdAt', descending: true)
@@ -507,7 +499,6 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                   subtitle: Text(
                     "${data['type']} - ${data['price']} đ\n${data['address'] ?? ''}",
                   ),
-                  // 🟢 THAY THẾ KHÚC trailing BẰNG ĐOẠN NÀY:
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

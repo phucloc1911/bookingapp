@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:bookingapp/models/room.dart';
+import 'package:bookingapp/models/review.dart';
 import 'package:bookingapp/screens/booking/booking_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bookingapp/services/firestore_service.dart';
 
 class RoomDetailScreen extends StatefulWidget {
   final Room room;
@@ -12,22 +14,20 @@ class RoomDetailScreen extends StatefulWidget {
 }
 
 class _RoomDetailScreenState extends State<RoomDetailScreen> {
-  int _currentImageIndex = 0; 
-  bool _isFavorite = false; 
+  int _currentImageIndex = 0;
+  bool _isFavorite = false;
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    _checkIfFavorite(); 
+    _checkIfFavorite();
   }
 
-  // 🟢 Kiểm tra dữ liệu yêu thích trên Firestore
   Future<void> _checkIfFavorite() async {
-    final doc = await FirebaseFirestore.instance
-        .collection('favorites')
-        .doc(widget.room.id)
-        .get();
-    
+    // Sử dụng Service thay cho Firebase trực tiếp
+    final doc = await _firestoreService.checkFavorite(widget.room.id);
+
     if (doc.exists) {
       setState(() {
         _isFavorite = true;
@@ -35,7 +35,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     }
   }
 
-  // 🟢 Xử lý khi bấm nút Yêu thích
   Future<void> _toggleFavorite() async {
     setState(() {
       _isFavorite = !_isFavorite;
@@ -43,25 +42,21 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
 
     try {
       if (_isFavorite) {
-        // LƯU Ý: Dùng toJson() theo đúng model Room của bạn
-        await FirebaseFirestore.instance
-            .collection('favorites')
-            .doc(widget.room.id)
-            .set(widget.room.toJson());
+        await _firestoreService.addFavorite(
+          widget.room.id,
+          widget.room.toJson(),
+        );
       } else {
-        await FirebaseFirestore.instance
-            .collection('favorites')
-            .doc(widget.room.id)
-            .delete();
+        await _firestoreService.removeFavorite(widget.room.id);
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _isFavorite 
-                ? "Đã thêm vào danh sách yêu thích!" 
-                : "Đã xóa khỏi danh sách yêu thích!",
+              _isFavorite
+                  ? "Đã thêm vào danh sách yêu thích!"
+                  : "Đã xóa khỏi danh sách yêu thích!",
             ),
             duration: const Duration(seconds: 1),
             behavior: SnackBarBehavior.floating,
@@ -69,7 +64,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
         );
       }
     } catch (e) {
-      // Hoàn tác trạng thái UI nếu lỗi
       setState(() {
         _isFavorite = !_isFavorite;
       });
@@ -89,7 +83,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // KHỐI 1: Ảnh bìa + Nút AppBar
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -168,25 +161,27 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                     ),
             ),
           ),
-
-          // KHỐI 2: Nội dung chi tiết cuộn bên dưới
           SliverToBoxAdapter(
             child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('reviews')
-                  .where('roomId', isEqualTo: widget.room.id)
-                  .snapshots(),
+              // Sử dụng Service thay cho Firebase trực tiếp
+              stream: _firestoreService.getRoomReviews(widget.room.id),
               builder: (context, snapshot) {
-                double avgRating = widget.room.rating; 
+                double avgRating = widget.room.rating;
                 int totalReviews = 0;
-                List<QueryDocumentSnapshot> reviews = [];
+                List<Review> reviews = [];
 
                 if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                  reviews = snapshot.data!.docs;
+                  reviews = snapshot.data!.docs.map((doc) {
+                    return Review.fromMap(
+                      doc.data() as Map<String, dynamic>,
+                      doc.id,
+                    );
+                  }).toList();
+
                   totalReviews = reviews.length;
                   double totalStars = 0;
-                  for (var doc in reviews) {
-                    totalStars += (doc['rating'] ?? 5).toDouble();
+                  for (var rev in reviews) {
+                    totalStars += rev.rating;
                   }
                   avgRating = totalStars / totalReviews;
                 }
@@ -233,7 +228,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-
                       Row(
                         children: [
                           const Icon(
@@ -255,7 +249,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: Divider(height: 1),
                       ),
-
                       const Text(
                         "Tiện nghi nổi bật",
                         style: TextStyle(
@@ -291,7 +284,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: Divider(height: 1),
                       ),
-
                       const Text(
                         "Mô tả",
                         style: TextStyle(
@@ -313,7 +305,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: Divider(height: 1),
                       ),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -338,7 +329,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-
                       if (totalReviews == 0)
                         const Text(
                           "Chưa có đánh giá nào. Hãy là người đầu tiên trải nghiệm nhé!",
@@ -354,18 +344,17 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                           padding: EdgeInsets.zero,
                           itemCount: displayCount,
                           itemBuilder: (context, index) {
-                            final revData = reviews[index].data() as Map<String, dynamic>;
+                            final revObj = reviews[index];
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12.0),
                               child: _buildReviewCard(
-                                revData['userName'] ?? 'Khách',
-                                revData['comment'] ?? '',
-                                (revData['rating'] ?? 5).toInt(),
+                                revObj.userName,
+                                revObj.comment,
+                                revObj.rating.toInt(),
                               ),
                             );
                           },
                         ),
-
                       if (totalReviews > 3)
                         Center(
                           child: OutlinedButton(
@@ -376,11 +365,11 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () => _showAllReviewsBottomSheet(reviews),
+                            onPressed: () =>
+                                _showAllReviewsBottomSheet(reviews),
                             child: Text("Xem tất cả $totalReviews đánh giá"),
                           ),
                         ),
-
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -390,8 +379,6 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
           ),
         ],
       ),
-
-      // KHỐI 3: Bottom Navigation Bar
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: const BoxDecoration(
@@ -461,7 +448,7 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
     );
   }
 
-  void _showAllReviewsBottomSheet(List<QueryDocumentSnapshot> allReviews) {
+  void _showAllReviewsBottomSheet(List<Review> allReviews) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -505,13 +492,13 @@ class _RoomDetailScreenState extends State<RoomDetailScreen> {
                       controller: controller,
                       itemCount: allReviews.length,
                       itemBuilder: (context, index) {
-                        final revData = allReviews[index].data() as Map<String, dynamic>;
+                        final revObj = allReviews[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
                           child: _buildReviewCard(
-                            revData['userName'] ?? 'Khách',
-                            revData['comment'] ?? '',
-                            (revData['rating'] ?? 5).toInt(),
+                            revObj.userName,
+                            revObj.comment,
+                            revObj.rating.toInt(),
                           ),
                         );
                       },
@@ -582,7 +569,9 @@ Widget _buildReviewCard(String name, String comment, int rating) {
                   Row(
                     children: List.generate(5, (index) {
                       return Icon(
-                        index < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                        index < rating
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
                         color: Colors.amber,
                         size: 16,
                       );

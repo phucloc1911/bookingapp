@@ -11,7 +11,7 @@ class PaymentMethodScreen extends StatefulWidget {
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   // Biến lưu phương thức đang được chọn
-  String _selectedMethod = 'momo'; // Mặc định là MoMo
+  String _selectedMethod = 'momo';
   bool _isLoading = false;
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
@@ -38,7 +38,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     }
   }
 
-  // 2. Hàm lưu phương thức lên Firebase
+  // Hàm lưu phương thức lên Firebase
   Future<void> _savePaymentMethod() async {
     if (currentUser == null) return;
 

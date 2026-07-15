@@ -3,14 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-
 import 'package:bookingapp/screens/auth/login_screen.dart';
 import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
 import 'package:bookingapp/screens/auth/account_screen.dart';
 import 'package:bookingapp/services/gg_map.dart';
 import 'package:bookingapp/screens/search/search_screen.dart';
 import 'package:bookingapp/models/room.dart';
-import 'package:bookingapp/screens/search/room_detail_screen.dart'; // Sửa lại đường dẫn nơi bạn lưu file
+import 'package:bookingapp/screens/search/room_detail_screen.dart';
 import 'package:bookingapp/screens/search/home_search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -78,20 +77,27 @@ class HomeScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             SizedBox(
-              height: 150,
+              height: 160,
               child: PageView(
+                controller: PageController(viewportFraction: 0.92),
                 children: [
+                  // Banner 1: Resort Biển
                   _buildBannerCard(
-                    Colors.blue[400]!,
-                    'Sale Hè Rực Rỡ\nGiảm đến 50% Khách Sạn',
+                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200&auto=format&fit=crop',
+                    'Sale Hè Rực Rỡ ',
+                    'Giảm đến 50% Khách Sạn & Resort ven biển',
                   ),
+                  // Banner 2: Homestay
                   _buildBannerCard(
-                    Colors.teal[400]!,
-                    'Homestay Đà Lạt\nChỉ từ 199k/đêm',
+                    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop',
+                    'Homestay Đà Lạt Cực Chill ',
+                    'Tặng voucher 200k cho đơn đặt phòng đầu tiên',
                   ),
+                  // Banner 3: Khách sạn sang trọng
                   _buildBannerCard(
-                    Colors.orange[400]!,
-                    'Hoàn tiền 10%\nkhi thanh toán qua Thẻ',
+                    'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=1200&auto=format&fit=crop',
+                    'Nghỉ Dưỡng Cuối Tuần ',
+                    'Hàng ngàn phòng sang trọng giá tốt nhất',
                   ),
                 ],
               ),
@@ -110,7 +116,6 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // --- DANH MỤC CATEGORY TỪ NHÁNH DEV-TRI ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: GridView.count(
@@ -227,7 +232,6 @@ class HomeScreen extends StatelessWidget {
                       String priceStr =
                           "${(placeData['price'] as num).toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ";
 
-                      // 🟢 1. LẤY MÔ TẢ TỪ FIREBASE
                       String description =
                           placeData['description'] ??
                           'Chưa có mô tả cho phòng này';
@@ -332,29 +336,79 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBannerCard(Color color, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+  Widget _buildBannerCard(String imageUrl, String title, String subtitle) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 6,
+      ), // Khoảng cách giữa các banner
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-          textAlign: TextAlign.center,
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: Colors.blue.shade400,
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+            ),
+
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // --- HÀM BUILD ICON CATEGORY VỚI HIỆU ỨNG CHẠM (INKWELL) TỪ NHÁNH DEV-TRI ---
   Widget _buildCategoryIcon(
     IconData icon,
     String title,
@@ -401,7 +455,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // --- HÀM BUILD CARD ĐẶT PHÒNG TỪ NHÁNH DEV-TRI ---
   Widget _buildRoomCard(
     String title,
     String location,
@@ -493,7 +546,7 @@ Widget _buildDynamicRoomCard({
 }) {
   return GestureDetector(
     onTap: () {
-      // 1. GÓI DỮ LIỆU THÀNH ĐỐI TƯỢNG ROOM
+      // GÓI DỮ LIỆU THÀNH ĐỐI TƯỢNG ROOM
       final selectedRoom = Room(
         id: id,
         title: title,
@@ -508,14 +561,9 @@ Widget _buildDynamicRoomCard({
         price3Beds: price3Beds,
       );
 
-      // 2. NÉM QUA BOOKING SCREEN
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => RoomDetailScreen(
-            room: selectedRoom, // 🟢 Đã chuẩn OOP!
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => RoomDetailScreen(room: selectedRoom)),
       );
     },
     child: Container(

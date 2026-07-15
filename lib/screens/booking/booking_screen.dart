@@ -7,7 +7,6 @@ import 'package:bookingapp/models/booking.dart';
 import 'package:bookingapp/models/room.dart';
 
 class BookingScreen extends StatefulWidget {
-  // Đã chuẩn OOP: Nhận duy nhất 1 đối tượng Room
   final Room room;
 
   const BookingScreen({super.key, required this.room});
@@ -19,12 +18,12 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   DateTime _checkInDate = DateTime.now().add(const Duration(days: 1));
   DateTime _checkOutDate = DateTime.now().add(const Duration(days: 2));
-  String _paymentMethod = 'Thanh toán tại khách sạn';
-  bool _isLoading = false;
-  final User? currentUser = FirebaseAuth.instance.currentUser;
 
   String _selectedPaymentMethod = 'Thanh toán tại khách sạn';
   int _selectedBeds = 1;
+  bool _isLoading = false;
+
+  final User? currentUser = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
@@ -32,7 +31,6 @@ class _BookingScreenState extends State<BookingScreen> {
     _loadDefaultPayment();
   }
 
-  // Tự động tải phương thức thanh toán mặc định
   Future<void> _loadDefaultPayment() async {
     if (currentUser != null) {
       final doc = await FirebaseFirestore.instance
@@ -43,32 +41,27 @@ class _BookingScreenState extends State<BookingScreen> {
         String methodId = doc.data()!['defaultPaymentMethod'];
         setState(() {
           if (methodId == 'vnpay') {
-            _paymentMethod = 'VNPAY QR / Ngân hàng';
+            _selectedPaymentMethod = 'VNPAY QR / Thẻ ATM';
           } else {
-            _paymentMethod = 'Thanh toán tại khách sạn';
+            _selectedPaymentMethod = 'Thanh toán tại khách sạn';
           }
         });
       }
     }
   }
 
-  // 🟢 HÀM VẼ GIAO DIỆN CHỌN SỐ LƯỢNG GIƯỜNG (PHIÊN BẢN THÔNG MINH)
   Widget _buildBedSelector() {
-    // 1. Tự động quét xem Admin có set giá phụ thu cho giường 2, 3 không
-    List<int> availableBeds = [1]; // Luôn có ít nhất 1 giường
+    List<int> availableBeds = [1];
 
-    // Nếu Admin set giá 2 giường lớn hơn giá gốc -> Mở khóa nút 2 giường
     if (widget.room.price2Beds > widget.room.price) {
       availableBeds.add(2);
     }
-    // Nếu Admin set giá 3 giường lớn hơn giá gốc -> Mở khóa nút 3 giường
     if (widget.room.price3Beds > widget.room.price) {
       availableBeds.add(3);
     }
 
-    // 2. Nếu phòng này chỉ có duy nhất 1 giường, ẨN LUÔN toàn bộ khu vực này cho đẹp!
     if (availableBeds.length == 1) {
-      return const SizedBox.shrink(); // Trả về widget tàng hình
+      return const SizedBox.shrink();
     }
 
     return Column(
@@ -90,7 +83,7 @@ class _BookingScreenState extends State<BookingScreen> {
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedBeds = bedCount; // Đổi số giường khi bấm
+                    _selectedBeds = bedCount;
                   });
                 },
                 child: AnimatedContainer(
@@ -120,8 +113,6 @@ class _BookingScreenState extends State<BookingScreen> {
             );
           }).toList(),
         ),
-
-        // Hiện cảnh báo tiền chênh lệch (chỉ hiện khi khách bấm chọn 2 hoặc 3)
         if (_selectedBeds == 2 && widget.room.price2Beds > widget.room.price)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -150,14 +141,13 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // Hàm vẽ từng ô chọn Phương thức thanh toán
   Widget _buildPaymentOption(String title, IconData icon, Color iconColor) {
     bool isSelected = _selectedPaymentMethod == title;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedPaymentMethod = title; // Cập nhật phương thức khi bấm
+          _selectedPaymentMethod = title;
         });
       },
       child: AnimatedContainer(
@@ -192,7 +182,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
               ),
             ),
-            // Hiện dấu tick xanh nếu đang được chọn
             if (isSelected)
               const Icon(Icons.check_circle, color: Colors.green, size: 24)
             else
@@ -207,32 +196,27 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // Hàm định dạng tiền
   String _formatCurrency(double amount) {
     return "${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ";
   }
 
-  // Tính số ngày ở
   int get _nights {
     final difference = _checkOutDate.difference(_checkInDate).inDays;
     return difference > 0 ? difference : 1;
   }
 
-  // Tính tổng tiền dựa trên giá của Room
   double get _totalPrice {
-    double basePrice = widget.room.price; // Giá mặc định 1 giường
+    double basePrice = widget.room.price;
 
-    // Nếu khách chọn 2 giường hoặc 3 giường thì lấy giá mà Admin đã set tương ứng
     if (_selectedBeds == 2) {
       basePrice = widget.room.price2Beds;
     } else if (_selectedBeds == 3) {
       basePrice = widget.room.price3Beds;
     }
 
-    return basePrice * _nights; // Tổng tiền = Giá/đêm * Số đêm
+    return basePrice * _nights;
   }
 
-  // Chọn ngày
   Future<void> _selectDateRange() async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
@@ -257,7 +241,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // Xác nhận đặt phòng
   Future<void> _confirmBooking() async {
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -271,7 +254,7 @@ class _BookingScreenState extends State<BookingScreen> {
     });
 
     try {
-      // 1. KIỂM TRA TRÙNG LỊCH BẰNG ID CỦA ROOM
+      // 1. KIỂM TRA TRÙNG LỊCH
       final existingBookings = await FirebaseFirestore.instance
           .collection('bookings')
           .where('itemId', isEqualTo: widget.room.id)
@@ -346,35 +329,34 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
-      // 2. KHỞI TẠO OBJECT BOOKING LẤY DỮ LIỆU TỪ ROOM
+      // 2. TẠO ĐƠN HÀNG
       final docRef = FirebaseFirestore.instance.collection('bookings').doc();
 
       final newBooking = Booking(
         id: docRef.id,
         userId: currentUser!.uid,
-        itemId: widget.room.id, // Lấy ID từ Room
-        itemTitle: widget
-            .room
-            .title, // Lấy Title từ Room (trong code của bạn là title)
-        itemType: widget.room.type, // Lấy Type từ Room
+        itemId: widget.room.id,
+        itemTitle: widget.room.title,
+        itemType: widget.room.type,
         checkIn: _checkInDate,
         checkOut: _checkOutDate,
         totalPrice: _totalPrice,
         status: 'Pending',
-        imageUrl: widget.room.imageUrl, // Lấy ảnh từ Room
+        imageUrl: widget.room.imageUrl,
       );
 
       final bookingData = newBooking.toMap();
       bookingData['bedCount'] = _selectedBeds;
-      // KIỂM TRA THANH TOÁN
-      if (_paymentMethod != 'Thanh toán tại khách sạn') {
+      bookingData['paymentMethod'] = _selectedPaymentMethod;
+
+      if (_selectedPaymentMethod != 'Thanh toán tại khách sạn') {
         if (!mounted) return;
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => PaymentGatewayScreen(
               bookingData: bookingData,
-              paymentMethod: _paymentMethod,
+              paymentMethod: _selectedPaymentMethod,
             ),
           ),
         );
@@ -384,7 +366,7 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
-      // LƯU ĐƠN BẰNG TIỀN MẶT
+      // LƯU ĐƠN BẰNG TIỀN MẶT LÊN FIREBASE
       await docRef.set(bookingData);
 
       if (!mounted) return;
@@ -447,14 +429,17 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi đặt phòng: $e")));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Lỗi đặt phòng: $e")));
+      }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -477,7 +462,6 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thẻ tóm tắt phòng
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -488,8 +472,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child:
-                        (widget.room.imageUrl.isNotEmpty) // Lấy ảnh từ room
+                    child: (widget.room.imageUrl.isNotEmpty)
                         ? Image.network(
                             widget.room.imageUrl,
                             width: 80,
@@ -533,7 +516,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            widget.room.type, // Lấy loại phòng từ room
+                            widget.room.type,
                             style: const TextStyle(
                               color: primaryBlue,
                               fontSize: 11,
@@ -543,7 +526,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          widget.room.title, // Lấy tên phòng từ room
+                          widget.room.title,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -551,7 +534,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _formatCurrency(widget.room.price), // Lấy giá từ room
+                          _formatCurrency(widget.room.price),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -564,7 +547,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
             const Text(
               "THỜI GIAN LƯU TRÚ",
@@ -575,8 +557,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // Thẻ chọn ngày
             InkWell(
               onTap: _selectDateRange,
               borderRadius: BorderRadius.circular(16),
@@ -646,7 +626,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // 🟢 GỌI GIAO DIỆN CHỌN GIƯỜNG VÀO ĐÂY
             _buildBedSelector(),
             const SizedBox(height: 20),
             const Text(
@@ -668,8 +647,6 @@ class _BookingScreenState extends State<BookingScreen> {
               Icons.storefront,
               Colors.orange,
             ),
-            const SizedBox(height: 8),
-
             const SizedBox(height: 20),
             const Text(
               "CHI TIẾT GIÁ",
@@ -680,8 +657,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // Bảng tính tiền
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -755,8 +730,6 @@ class _BookingScreenState extends State<BookingScreen> {
           ],
         ),
       ),
-
-      // THANH NÚT BẤM ĐẶT PHÒNG Ở ĐÁY MÀN HÌNH
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(

@@ -195,14 +195,11 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     String orderCode =
         "RESERVO${widget.bookingData['id'].toString().substring(0, 6).toUpperCase()}";
 
-    // =========================================================================
-    // CẤU HÌNH TÀI KHOẢN THẬT CỦA BẠN Ở ĐÂY:
-    // =========================================================================
     String bankId = "MB"; // Ngân hàng MB Bank
     String accountNo = "0868833573";
     String accountName = "NGUYEN PHUC LOC";
 
-    // Tạo link VietQR động (Quét được bằng cả app Ngân Hàng lẫn app MoMo!)
+    // Tạo link VietQR động
     String qrUrl =
         "https://img.vietqr.io/image/$bankId-$accountNo-compact2.png?amount=${amount.toInt()}&addInfo=$orderCode&accountName=${Uri.encodeComponent(accountName)}";
 

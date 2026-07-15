@@ -84,7 +84,6 @@ class AdminManageReviewsScreen extends StatelessWidget {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
-                      // 🟢 BẢNG HỎI XÁC NHẬN TRƯỚC KHI XÓA
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(

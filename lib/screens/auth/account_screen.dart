@@ -10,7 +10,7 @@ import '../profile/about_screen.dart';
 import '../profile/help_center_screen.dart';
 import '../profile/security_screen.dart';
 import 'package:bookingapp/screens/favoriters/favoriter_screen.dart';
-
+import '../booking/my_booking_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -25,7 +25,6 @@ class _AccountScreenState extends State<AccountScreen> {
 
   // Hàm xử lý Đăng xuất
   Future<void> _signOut() async {
-    // Hiện bảng hỏi xác nhận cho chuyên nghiệp
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -78,19 +77,16 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Màu xanh chuẩn theo file image_bfe115.jpg
     const Color primaryBlue = Color(0xFF0066FF);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Màu nền xám xanh siêu nhạt
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // CỤM HEADER & THẺ PROFILE OVERLAP
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // 1. Nền xanh phía trên (Cắt ngang vát nhẹ)
                 Container(
                   height: 230,
                   width: double.infinity,
@@ -132,7 +128,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   ),
                 ),
 
-                // 2. Thẻ Profile trắng nằm đè lên
                 Padding(
                   padding: const EdgeInsets.only(top: 110, left: 20, right: 20),
                   child: FutureBuilder<DocumentSnapshot>(
@@ -285,7 +280,14 @@ class _AccountScreenState extends State<AccountScreen> {
                     _buildTile(
                       Icons.bookmark_border_rounded,
                       "Lịch sử đặt phòng",
-                      () {},
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyBookingScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _buildTile(
                       Icons.favorite_border_rounded,
@@ -361,10 +363,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   ]),
                   const SizedBox(height: 30),
 
-                  // 🟢 NÚT ĐẶC QUYỀN CHỈ HIỆN CHO ADMIN
-                  // =======================================================
-                  // 🟢 KHỐI MENU DÀNH RIÊNG CHO ADMIN (Tự động kiểm tra quyền)
-                  // =======================================================
+                  //KHỐI MENU CHO ADMIN
                   FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance
                         .collection('users')
@@ -410,13 +409,12 @@ class _AccountScreenState extends State<AccountScreen> {
                           );
                         }
                       }
-                      // Nếu không phải admin, trả về một khoảng trống tàng hình (không hiện gì cả)
+                      // Nếu không phải admin, trả về một khoảng trống tàng hình
                       return const SizedBox.shrink();
                     },
                   ),
-                  // =======================================================
 
-                  // NÚT ĐĂNG XUẤT ĐỎ NỔI BẬT
+                  // NÚT ĐĂNG XUẤT
                   SizedBox(
                     width: double.infinity,
                     height: 52,

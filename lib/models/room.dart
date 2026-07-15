@@ -4,14 +4,13 @@ class Room {
   String _type;
   double _rating;
   double _price;
-  String _imageUrl; // Ảnh đại diện chính (Không đổi để không lỗi app)
+  String _imageUrl;
   List<String> _amenities;
   bool _isFavorite;
   String _description;
-  List<String> _gallery; // 🟢 THÊM: Danh sách các ảnh phụ để vuốt
-  double _price2Beds; // 🟢 THÊM GIÁ 2 GIƯỜNG
-  double _price3Beds; // 🟢 THÊM GIÁ 3 GIƯỜNG
-
+  List<String> _gallery;
+  double _price2Beds;
+  double _price3Beds;
   Room({
     required String id,
     required String title,
@@ -53,7 +52,7 @@ class Room {
       description: json['description'] ?? 'Chưa có mô tả cho phòng này.',
       gallery: json['gallery'] != null
           ? List<String>.from(json['gallery'])
-          : [], // 🟢 ĐỌC TỪ FIREBASE
+          : [],
       price2Beds: (json['price2Beds'] ?? (json['price'] ?? 0.0))
           .toDouble(), // Mặc định bằng giá 1 giường nếu trống
       price3Beds: (json['price3Beds'] ?? (json['price'] ?? 0.0)).toDouble(),
@@ -70,7 +69,7 @@ class Room {
   List<String> get amenities => _amenities;
   bool get isFavorite => _isFavorite;
   String get description => _description;
-  List<String> get gallery => _gallery; // 🟢 GETTER
+  List<String> get gallery => _gallery;
   double get price2Beds => _price2Beds;
   double get price3Beds => _price3Beds;
   set id(String value) {
@@ -111,7 +110,7 @@ class Room {
 
   set gallery(List<String> value) {
     _gallery = value;
-  } // 🟢 SETTER
+  }
 
   set price2Beds(double value) {
     _price2Beds = value;

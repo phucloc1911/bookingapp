@@ -4,16 +4,15 @@ class User {
   String _email;
   String _phoneNumber;
 
-  // Sử dụng 'this.' trong constructor giúp code gọn hơn rất nhiều
   User({
     required String id,
     required String name,
     required String email,
     required String phoneNumber,
-  })  : _id = id,
-        _name = name,
-        _email = email,
-        _phoneNumber = phoneNumber;
+  }) : _id = id,
+       _name = name,
+       _email = email,
+       _phoneNumber = phoneNumber;
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -30,7 +29,7 @@ class User {
   String get email => _email;
   String get phoneNumber => _phoneNumber;
 
-  // Setters (Chỉ giữ lại nếu bạn cần kiểm tra logic khi gán giá trị)
+  // Setters
   set id(String value) => _id = value;
   set name(String value) => _name = value;
   set email(String value) => _email = value;

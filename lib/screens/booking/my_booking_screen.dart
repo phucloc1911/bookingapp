@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bookingapp/models/booking.dart';
+import 'package:bookingapp/services/firestore_service.dart';
 
 class MyBookingScreen extends StatefulWidget {
   const MyBookingScreen({super.key});
@@ -13,11 +15,12 @@ class _MyBookingScreenState extends State<MyBookingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final User? currentUser = FirebaseAuth.instance.currentUser;
+  final FirestoreService _firestoreService =
+      FirestoreService(); // Khởi tạo Service
 
   @override
   void initState() {
     super.initState();
-    // 🟢 ĐỔI THÀNH 4 TAB THAY VÌ 3
     _tabController = TabController(length: 4, vsync: this);
   }
 
@@ -43,7 +46,7 @@ class _MyBookingScreenState extends State<MyBookingScreen>
         iconTheme: const IconThemeData(color: Colors.white),
         bottom: TabBar(
           controller: _tabController,
-          isScrollable: true, // 🟢 Bật cuộn ngang vì 4 tab sẽ hơi chật màn hình
+          isScrollable: true,
           tabAlignment: TabAlignment.start,
           indicatorColor: Colors.white,
           indicatorWeight: 3,
@@ -67,25 +70,22 @@ class _MyBookingScreenState extends State<MyBookingScreen>
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildBookingList(statusFilter: ['Pending']), // Tab 1: Chờ TT
-                _buildBookingList(statusFilter: ['Confirmed']), // Tab 2: Đã TT
-                _buildBookingList(
-                  statusFilter: ['Completed'],
-                ), // Tab 3: Trả phòng
-                _buildBookingList(statusFilter: ['Cancelled']), // Tab 4: Đã hủy
+                _buildBookingList(statusFilter: ['Pending']),
+                _buildBookingList(statusFilter: ['Confirmed']),
+                _buildBookingList(statusFilter: ['Completed']),
+                _buildBookingList(statusFilter: ['Cancelled']),
               ],
             ),
     );
   }
 
-  // 1. Hàm quét danh sách Booking từ Firebase
   Widget _buildBookingList({required List<String> statusFilter}) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('bookings')
-          .where('userId', isEqualTo: currentUser?.uid)
-          .where('status', whereIn: statusFilter)
-          .snapshots(),
+      // Sử dụng Service thay vì gọi Firebase trực tiếp
+      stream: _firestoreService.getUserBookings(
+        currentUser?.uid ?? '',
+        statusFilter,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -106,22 +106,21 @@ class _MyBookingScreenState extends State<MyBookingScreen>
           itemCount: docs.length,
           separatorBuilder: (context, index) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
-            final data = docs[index].data() as Map<String, dynamic>;
-            return _buildBookingCard(data, docs[index].id);
+            final dataMap = docs[index].data() as Map<String, dynamic>;
+            final bookingObj = Booking.fromMap(dataMap, docs[index].id);
+            return _buildBookingCard(bookingObj);
           },
         );
       },
     );
   }
 
-  // 2. Giao diện từng thẻ Booking Card (Đã thêm Hình ảnh & Tên phòng từ chuẩn OOP)
-  Widget _buildBookingCard(Map<String, dynamic> data, String docId) {
-    double totalPrice = (data['totalPrice'] ?? 0.0).toDouble();
+  Widget _buildBookingCard(Booking booking) {
+    double totalPrice = booking.totalPrice;
     String formattedPrice =
         "${totalPrice.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ";
 
-    // 🟢 XỬ LÝ LOGIC CHỮ VÀ MÀU CHO 4 TRẠNG THÁI
-    String status = data['status'] ?? 'Pending';
+    String status = booking.status;
     Color statusColor = Colors.orange;
     String statusText = "Chờ thanh toán";
 
@@ -136,9 +135,14 @@ class _MyBookingScreenState extends State<MyBookingScreen>
       statusText = "Đã hủy";
     }
 
-    // Lấy link ảnh và tên phòng
-    String imageUrl = data['imageUrl'] ?? '';
-    String itemTitle = data['itemTitle'] ?? 'Phòng chưa có tên';
+    String imageUrl = booking.imageUrl ?? '';
+    String itemTitle = booking.itemTitle.isNotEmpty
+        ? booking.itemTitle
+        : 'Phòng chưa có tên';
+    String docId = booking.id;
+
+    String checkInStr = booking.checkIn.toString().split(' ')[0];
+    String checkOutStr = booking.checkOut.toString().split(' ')[0];
 
     return Container(
       decoration: BoxDecoration(
@@ -157,7 +161,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dòng trên cùng: Ảnh, Tên phòng, Mã đơn & Trạng thái
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -223,8 +226,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Divider(height: 1),
             ),
-
-            // Dòng thông tin ngày tháng check-in / check-out
             Row(
               children: [
                 const Icon(
@@ -235,15 +236,13 @@ class _MyBookingScreenState extends State<MyBookingScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Check-in: ${data['checkIn']?.toString().split('T')[0] ?? 'N/A'}  ➔  Check-out: ${data['checkOut']?.toString().split('T')[0] ?? 'N/A'}",
+                    "Check-in: $checkInStr  ➔  Check-out: $checkOutStr",
                     style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
-            // Tổng tiền & Nút thao tác Hủy phòng (Chỉ hiện khi chưa ở)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -300,7 +299,7 @@ class _MyBookingScreenState extends State<MyBookingScreen>
                       ),
                     ),
                     onPressed: () {
-                      _showReviewDialog(data['itemId'], data['itemTitle']);
+                      _showReviewDialog(booking.itemId, booking.itemTitle);
                     },
                   ),
               ],
@@ -320,7 +319,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
     );
   }
 
-  // 3. Hiệu ứng trống khi chưa có đơn nào
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -350,7 +348,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
     );
   }
 
-  // 4. Giao diện khi người dùng chưa đăng nhập
   Widget _buildNotLoggedInState() {
     return Center(
       child: Column(
@@ -371,7 +368,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
     );
   }
 
-  // 5. Bảng hỏi xác nhận Hủy phòng
   void _showCancelDialog(String docId) {
     showDialog(
       context: context,
@@ -390,10 +386,8 @@ class _MyBookingScreenState extends State<MyBookingScreen>
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () async {
               Navigator.pop(context);
-              await FirebaseFirestore.instance
-                  .collection('bookings')
-                  .doc(docId)
-                  .update({'status': 'Cancelled'});
+              // Sử dụng Service thay thế
+              await _firestoreService.updateBookingStatus(docId, 'Cancelled');
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Đã hủy đơn đặt phòng!")),
@@ -409,15 +403,13 @@ class _MyBookingScreenState extends State<MyBookingScreen>
     );
   }
 
-  // Hàm hiển thị Popup Đánh giá
   void _showReviewDialog(String roomId, String roomTitle) {
-    int _rating = 5; // Mặc định 5 sao
+    int _rating = 5;
     TextEditingController _commentCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        // Dùng StatefulBuilder để sao sáng lên khi bấm
         builder: (context, setDialogState) {
           return AlertDialog(
             shape: RoundedRectangleBorder(
@@ -430,7 +422,6 @@ class _MyBookingScreenState extends State<MyBookingScreen>
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Hàng chọn sao
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(5, (index) {
@@ -444,14 +435,13 @@ class _MyBookingScreenState extends State<MyBookingScreen>
                       ),
                       onPressed: () {
                         setDialogState(() {
-                          _rating = index + 1; // Cập nhật số sao
+                          _rating = index + 1;
                         });
                       },
                     );
                   }),
                 ),
                 const SizedBox(height: 16),
-                // Ô nhập nhận xét
                 TextField(
                   controller: _commentCtrl,
                   maxLines: 3,
@@ -477,18 +467,16 @@ class _MyBookingScreenState extends State<MyBookingScreen>
                   if (_commentCtrl.text.trim().isEmpty) return;
 
                   Navigator.pop(context);
-                  // 🟢 ĐẨY ĐÁNH GIÁ LÊN FIREBASE (BẢNG 'reviews')
-                  await FirebaseFirestore.instance.collection('reviews').add({
-                    'roomId': roomId,
-                    'userId': currentUser?.uid ?? 'unknown',
-                    'userName':
+                  await _firestoreService.addReview(
+                    roomId: roomId,
+                    userId: currentUser?.uid ?? 'unknown',
+                    userName:
                         currentUser?.displayName ??
                         currentUser?.email?.split('@')[0] ??
                         'Khách hàng ẩn danh',
-                    'rating': _rating,
-                    'comment': _commentCtrl.text.trim(),
-                    'createdAt': FieldValue.serverTimestamp(),
-                  });
+                    rating: _rating,
+                    comment: _commentCtrl.text.trim(),
+                  );
 
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(

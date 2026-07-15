@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shimmer/shimmer.dart'; // Import thư viện shimmer
-import 'package:bookingapp/models/room.dart'; // Nhớ Import trang BookingScreen để xài cho nút "Xem phòng"
-import 'package:bookingapp/screens/booking/booking_screen.dart'; // Sửa lại đường dẫn nếu cần
-import 'package:bookingapp/screens/search/room_detail_screen.dart'; // Sửa lại đường dẫn nơi bạn lưu file
+import 'package:shimmer/shimmer.dart';
+import 'package:bookingapp/models/room.dart';
+import 'package:bookingapp/screens/search/room_detail_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   final String categoryType;
@@ -28,13 +27,11 @@ class SearchScreen extends StatelessWidget {
       ),
 
       body: StreamBuilder<QuerySnapshot>(
-        //  ĐÃ CHUYỂN VỀ BẢNG 'rooms' CHO KHỚP VỚI FIREBASE CỦA BẠN
         stream: FirebaseFirestore.instance
             .collection('rooms')
             .where('type', isEqualTo: categoryType)
             .snapshots(),
         builder: (context, snapshot) {
-          // 1. TRẠNG THÁI ĐANG TẢI (Hiện khung xương Shimmer)
           if (snapshot.connectionState == ConnectionState.waiting) {
             return ListView.builder(
               padding: const EdgeInsets.all(16.0),
@@ -45,12 +42,10 @@ class SearchScreen extends StatelessWidget {
             );
           }
 
-          // 2. Nếu có lỗi xảy ra
           if (snapshot.hasError) {
             return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
           }
 
-          // 3. Nếu Không có dữ liệu
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Column(
@@ -71,7 +66,6 @@ class SearchScreen extends StatelessWidget {
             );
           }
 
-          // 4. TRẠNG THÁI CÓ DỮ LIỆU: Đổ ra danh sách thẻ phòng thật
           final rooms = snapshot.data!.docs;
 
           return ListView.builder(
@@ -122,7 +116,7 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET XÂY DỰNG GIAO DIỆN TỪNG THẺ PHÒNG THẬT ---
+  //  WIDGET XÂY DỰNG GIAO DIỆN TỪNG THẺ PHÒNG THẬT
   Widget _buildRoomCard(
     BuildContext context,
     String name,
@@ -153,7 +147,7 @@ class SearchScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Khối 1: Ảnh đại diện từ mạng (URL)
+          // Ảnh đại diện từ mạng (URL)
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16.0),
@@ -170,7 +164,7 @@ class SearchScreen extends StatelessWidget {
                 : _buildImagePlaceholder(),
           ),
 
-          // Khối 2: Thông tin chữ
+          // Thông tin chữ
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -231,12 +225,12 @@ class SearchScreen extends StatelessWidget {
 
                     ElevatedButton(
                       onPressed: () {
-                        // 1. GÓI DỮ LIỆU THÀNH ĐỐI TƯỢNG ROOM TRƯỚC
+                        // GÓI DỮ LIỆU THÀNH ĐỐI TƯỢNG ROOM TRƯỚC
                         final selectedRoom = Room(
                           id: roomId,
                           title: name,
                           type: itemType,
-                          rating: 5.0, // Mặc định 5 sao
+                          rating: 5.0,
                           price: price.toDouble(),
                           imageUrl: imageUrl,
                           description: description,
@@ -246,7 +240,7 @@ class SearchScreen extends StatelessWidget {
                           price3Beds: price3Beds,
                         );
 
-                        // 2. TRUYỀN ĐỐI TƯỢNG ROOM SANG TRANG BOOKING
+                        // TRUYỀN ĐỐI TƯỢNG ROOM SANG TRANG BOOKING
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -294,9 +288,8 @@ class SearchScreen extends StatelessWidget {
   }
 }
 
-// ==============================================================
 // WIDGET KHUNG XƯƠNG (SKELETON) ĐƯỢC TÁCH RA ĐỂ TÁI SỬ DỤNG
-// ==============================================================
+
 class RoomSkeleton extends StatelessWidget {
   const RoomSkeleton({super.key});
 

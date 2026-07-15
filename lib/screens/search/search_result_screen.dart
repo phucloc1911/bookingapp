@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bookingapp/models/room.dart';
 
 import 'package:bookingapp/screens/search/room_detail_screen.dart';
-import 'package:bookingapp/screens/booking/booking_screen.dart';
 
 class SearchResultScreen extends StatelessWidget {
   final String keyword;

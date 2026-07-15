@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:bookingapp/screens/admin/admin_manage_places_screen.dart'; // Sửa lại đường dẫn của bạn
-import 'package:bookingapp/screens/admin/admin_manage_reviews_screen.dart'; // Chỉnh lại đường dẫn cho đúng
+import 'package:bookingapp/screens/admin/admin_manage_places_screen.dart';
+import 'package:bookingapp/screens/admin/admin_manage_reviews_screen.dart';
+import 'package:bookingapp/services/firestore_service.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final FirestoreService firestoreService = FirestoreService();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor:
-            Colors.redAccent, // Admin cho màu Đỏ cho ngầu và phân biệt
+        backgroundColor: Colors.redAccent,
         title: const Text(
           "BẢNG ĐIỀU KHIỂN ADMIN",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -24,27 +26,72 @@ class AdminDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thẻ thống kê nhanh
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    "Doanh thu",
-                    "15.5M",
-                    Icons.attach_money,
-                    Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard(
-                    "Đơn mới",
-                    "12",
-                    Icons.receipt_long,
-                    Colors.blue,
-                  ),
-                ),
-              ],
+            StreamBuilder<QuerySnapshot>(
+              stream: firestoreService.getAllBookingsForAdmin(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return const Text("Lỗi tải dữ liệu thống kê");
+                }
+
+                double totalRevenue = 0;
+                int newOrdersCount = 0;
+
+                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                  for (var doc in snapshot.data!.docs) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    String status = data['status'] ?? 'Pending';
+                    double price = (data['totalPrice'] ?? 0).toDouble();
+
+                    if (status == 'Pending') {
+                      newOrdersCount++;
+                    } else if (status == 'Confirmed' || status == 'Completed') {
+                      totalRevenue += price;
+                    }
+                  }
+                }
+
+                String formattedRevenue;
+                if (totalRevenue >= 1000000) {
+                  formattedRevenue =
+                      "${(totalRevenue / 1000000).toStringAsFixed(1)}M";
+                } else if (totalRevenue > 0) {
+                  formattedRevenue =
+                      "${totalRevenue.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ";
+                } else {
+                  formattedRevenue = "0 đ";
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        "Doanh thu",
+                        formattedRevenue,
+                        Icons.attach_money,
+                        Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildStatCard(
+                        "Đơn mới",
+                        "$newOrdersCount",
+                        Icons.receipt_long,
+                        Colors.blue,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -54,10 +101,7 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Các nút chức năng Admin
-            // Các nút chức năng Admin
             _buildAdminMenu(Icons.hotel, "Quản lý Phòng / Homestay", () {
-              // 🟢 GỌI TRANG QUẢN LÝ Ở ĐÂY:
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -81,20 +125,18 @@ class AdminDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // DANH SÁCH TOÀN BỘ ĐƠN HÀNG CỦA MỌI NGƯỜI
             StreamBuilder<QuerySnapshot>(
-              // Lấy TẤT CẢ đơn từ Firebase (Sắp xếp mới nhất lên đầu)
-              stream: FirebaseFirestore.instance
-                  .collection('bookings')
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
+              // Sử dụng Service thay cho Firebase trực tiếp
+              stream: firestoreService.getAllBookingsForAdmin(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData)
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
+                }
 
                 final docs = snapshot.data!.docs;
-                if (docs.isEmpty)
+                if (docs.isEmpty) {
                   return const Text("Chưa có đơn hàng nào trên hệ thống.");
+                }
 
                 return ListView.builder(
                   shrinkWrap: true,
@@ -116,11 +158,9 @@ class AdminDashboardScreen extends StatelessWidget {
                         subtitle: Text(
                           "ID User: ${data['userId']}\nTổng tiền: ${data['totalPrice']} đ",
                         ),
-                        // 🟢 THAY THẾ KHÚC trailing CŨ BẰNG ĐOẠN NÀY
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // 1. NÚT CẬP NHẬT TRẠNG THÁI (MỚI)
                             PopupMenuButton<String>(
                               icon: const Icon(
                                 Icons.edit_calendar,
@@ -128,11 +168,11 @@ class AdminDashboardScreen extends StatelessWidget {
                               ),
                               tooltip: "Cập nhật trạng thái",
                               onSelected: (String newStatus) {
-                                // Lệnh cập nhật lên Firebase
-                                FirebaseFirestore.instance
-                                    .collection('bookings')
-                                    .doc(docs[index].id)
-                                    .update({'status': newStatus});
+                                // Sử dụng Service thay cho Firebase trực tiếp
+                                firestoreService.updateBookingStatus(
+                                  docs[index].id,
+                                  newStatus,
+                                );
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -173,15 +213,12 @@ class AdminDashboardScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-
-                            // 2. NÚT XÓA ĐƠN HÀNG (GIỮ NGUYÊN)
                             IconButton(
                               icon: const Icon(
                                 Icons.delete_outline,
                                 color: Colors.red,
                               ),
                               onPressed: () {
-                                // Thêm xác nhận trước khi xóa cho an toàn
                                 showDialog(
                                   context: context,
                                   builder: (ctx) => AlertDialog(
@@ -203,10 +240,10 @@ class AdminDashboardScreen extends StatelessWidget {
                                         ),
                                         onPressed: () {
                                           Navigator.pop(ctx);
-                                          FirebaseFirestore.instance
-                                              .collection('bookings')
-                                              .doc(docs[index].id)
-                                              .delete();
+                                          // Sử dụng Service thay cho Firebase trực tiếp
+                                          firestoreService.deleteBooking(
+                                            docs[index].id,
+                                          );
                                         },
                                         child: const Text(
                                           "Xóa",

@@ -60,6 +60,38 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
                         labelText: "Tên địa điểm",
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedType, // Biến này lưu giá trị đang chọn
+                      decoration: const InputDecoration(
+                        labelText: "Loại hình lưu trú",
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: ['Khách sạn', 'Homestay', 'Resort'].map((
+                        String type,
+                      ) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(
+                            type,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setDialogState(() {
+                            _selectedType =
+                                newValue; // Cập nhật khi Admin chọn dòng khác
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     TextField(
                       controller: _addressCtrl,
                       decoration: const InputDecoration(labelText: "Địa chỉ"),
@@ -235,7 +267,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
     // Đổ dữ liệu cũ vào form
     _nameCtrl.text = data['name'] ?? '';
     _addressCtrl.text = data['address'] ?? '';
-
+    _selectedType = data['type'] ?? 'Khách sạn';
     // 🟢 ĐỔ DỮ LIỆU GIÁ 1, 2, 3 GIƯỜNG (Nếu chưa có thì lấy giá 1 giường mặc định)
     _priceCtrl.text = (data['price'] ?? 0).toString();
     _price2Ctrl.text = (data['price2Beds'] ?? data['price'] ?? 0).toString();
@@ -402,7 +434,7 @@ class _AdminManagePlacesScreenState extends State<AdminManagePlacesScreen> {
         'price': double.tryParse(_priceCtrl.text.trim()) ?? 0,
         'price2Beds': double.tryParse(_price2Ctrl.text.trim()) ?? 0,
         'price3Beds': double.tryParse(_price3Ctrl.text.trim()) ?? 0,
-
+        'type': _selectedType,
         'imageUrl': _imageCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
         'amenities': _selectedAmenities,
